@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import { Card, CardContent } from '@/components/ui/card'
+import { useRouter } from 'vue-router'
 import { Button } from '@/components/ui/button'
 import {
   Pagination,
@@ -11,6 +12,7 @@ import {
   PaginationPrevious,
 } from '@/components/ui/pagination'
 
+const router = useRouter()
 // 基礎新聞資料
 const baseNews = [
   {
@@ -89,6 +91,7 @@ const paginatedNews = computed(() => {
         <Card 
           v-for="item in paginatedNews" 
           :key="item.id"
+          @click="router.push(`/news/${item.id}`)"
           class="group cursor-pointer overflow-hidden border border-outline-variant/20 shadow-sm hover:shadow-md transition-all bg-surface-container-lowest flex flex-col md:flex-row p-4 md:p-6 gap-6 md:gap-8 rounded-2xl"
         >
           <!-- 左側圖片 -->

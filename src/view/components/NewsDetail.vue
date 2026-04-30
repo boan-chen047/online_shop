@@ -1,3 +1,35 @@
+<script setup>
+import { ref } from 'vue'
+import { useRouter } from 'vue-router'
+const router = useRouter()
+
+const goBack = () => {
+  // router.back()
+  console.log('Return to previous page')
+}
+
+// 模擬從 API 獲取的文章資料
+const article = ref({
+  category: 'GLOBAL EXPANSION',
+  dateRaw: '2024-10-24',
+  dateFormatted: 'Oct 24, 2024',
+  readTime: '6 min read',
+  title: 'Kinetic Scaling: Redefining Logistics Infrastructure in Emerging Markets',
+  imageUrl: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBvUem801bZe11XWswiTy0LRr-N78E-YDzNQPYkRPxJIutxsGfMcrxMSt2xjwoRzgEG5tXa8Xca3TcCdg7SFSyUAst0ipObB21gCZrl9eyUn9J7VdY-oxxN4A2Zv4spF4FkRJm_28PWjnd1xgvN6R73m0WyYbKms8TOTRmxOYkcEiTv9fm1KeG_ua0BFVuYdPZJAKqEtZlhy8Xxe78DJXhuqV-O8hPYMQ6FffuYQYv0AufYRuiDS7G6cFXH4ouHEPN9QREB-o3-E2I',
+  imageAlt: 'Modern minimalist corporate office building with clean glass lines and concrete textures under bright natural daylight',
+  content: {
+    intro: 'In an era defined by rapid digital transformation, Kinetic is taking a bold step forward by physicalizing the digital shelf. Our recent initiatives across the Southeast Asian corridor mark a pivotal shift from traditional warehousing to agile, tech-enabled fulfillment hubs.',
+    sectionTitle: 'Bridging the Infrastructure Gap',
+    sectionBody1: 'The challenge has never been a lack of demand, but rather a lack of connective tissue. By integrating proprietary AI-routing with architectural precision, Kinetic has managed to reduce last-mile delivery windows by 40% in previously unreachable zones.',
+    quote: {
+      text: '"Expansion is not merely about geographic presence; it is about the structural integrity of the service we provide to every merchant, regardless of their location."',
+      author: 'Elena Rossi, Chief Operating Officer'
+    },
+    sectionBody2: 'As we look toward 2025, our focus remains on "Dynamic Professionalism"—a core brand pillar that demands we move fast without breaking the trust of our enterprise partners. The new centers are not just storage facilities; they are the heart of a local economy, powered by Kinetic\'s vision of a unified digital workspace.'
+  }
+})
+</script>
+
 <template>
   <!-- 最外層容器，取代原本的 body 樣式 -->
   <div class="article-page bg-surface font-body-md text-on-surface selection:bg-primary-container selection:text-on-primary">
@@ -97,39 +129,7 @@
   </div>
 </template>
 
-<script setup>
-import { ref } from 'vue'
 
-// 如果有使用 Vue Router，可以引入 useRouter
-// import { useRouter } from 'vue-router'
-// const router = useRouter()
-
-const goBack = () => {
-  // router.back()
-  console.log('Return to previous page')
-}
-
-// 模擬從 API 獲取的文章資料
-const article = ref({
-  category: 'GLOBAL EXPANSION',
-  dateRaw: '2024-10-24',
-  dateFormatted: 'Oct 24, 2024',
-  readTime: '6 min read',
-  title: 'Kinetic Scaling: Redefining Logistics Infrastructure in Emerging Markets',
-  imageUrl: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBvUem801bZe11XWswiTy0LRr-N78E-YDzNQPYkRPxJIutxsGfMcrxMSt2xjwoRzgEG5tXa8Xca3TcCdg7SFSyUAst0ipObB21gCZrl9eyUn9J7VdY-oxxN4A2Zv4spF4FkRJm_28PWjnd1xgvN6R73m0WyYbKms8TOTRmxOYkcEiTv9fm1KeG_ua0BFVuYdPZJAKqEtZlhy8Xxe78DJXhuqV-O8hPYMQ6FffuYQYv0AufYRuiDS7G6cFXH4ouHEPN9QREB-o3-E2I',
-  imageAlt: 'Modern minimalist corporate office building with clean glass lines and concrete textures under bright natural daylight',
-  content: {
-    intro: 'In an era defined by rapid digital transformation, Kinetic is taking a bold step forward by physicalizing the digital shelf. Our recent initiatives across the Southeast Asian corridor mark a pivotal shift from traditional warehousing to agile, tech-enabled fulfillment hubs.',
-    sectionTitle: 'Bridging the Infrastructure Gap',
-    sectionBody1: 'The challenge has never been a lack of demand, but rather a lack of connective tissue. By integrating proprietary AI-routing with architectural precision, Kinetic has managed to reduce last-mile delivery windows by 40% in previously unreachable zones.',
-    quote: {
-      text: '"Expansion is not merely about geographic presence; it is about the structural integrity of the service we provide to every merchant, regardless of their location."',
-      author: 'Elena Rossi, Chief Operating Officer'
-    },
-    sectionBody2: 'As we look toward 2025, our focus remains on "Dynamic Professionalism"—a core brand pillar that demands we move fast without breaking the trust of our enterprise partners. The new centers are not just storage facilities; they are the heart of a local economy, powered by Kinetic\'s vision of a unified digital workspace.'
-  }
-})
-</script>
 
 <style scoped>
 .article-page {

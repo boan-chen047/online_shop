@@ -14,7 +14,6 @@ import {
   User
 } from 'lucide-vue-next'
 
-// 會員基本資料
 const userProfile = ref({
   name: 'Alexander Wright',
   title: 'Chief Operations Officer at Zenith Corp',
@@ -22,7 +21,6 @@ const userProfile = ref({
   avatar: 'https://lh3.googleusercontent.com/aida-public/AB6AXuC6uUUj-6CGNMrYHfbQPxdwZ2Q2qjyA92-pgwSsjOnc-8mUyEm2JGKup-AEXpeaxNmB92UPQVNy8irNAjOGzCKlmV2p7rMOxMYWwFDQqiekjEKrfqUhI-lakuEA1dgokiQiRrzXqrQB33Qi8pO_gG3gqUUCySvGBnikFhbn9CpbV4T5fInNYX7sTHjd-mUUoHcFE7nSpez1z52uILOBroYk98n3iwbGF5ZLgPxUDZAskjaAiv6G9O_v9IYXW-re545JScyM9ROA7xM'
 })
 
-// 購買紀錄假資料
 const purchaseHistory = ref([
   {
     id: 'KN-89231',
@@ -50,7 +48,6 @@ const purchaseHistory = ref([
   }
 ])
 
-// 底部導覽列設定
 const navItems = ref([
   { label: 'Feed', icon: Newspaper, path: '#', active: false },
   { label: 'Discover', icon: Compass, path: '#', active: false },
@@ -60,7 +57,8 @@ const navItems = ref([
 </script>
 
 <template>
-  <div class="custom-bg text-on-surface antialiased h-full pb-8 font-body-md">
+  <!-- 移除了 custom-bg，改用 bg-surface 與 min-h-screen，並調整 bottom padding 為 pb-16 -->
+  <div class="bg-surface text-on-surface antialiased min-h-screen pb-16 font-body-md">
     
     <header class="relative pt-16 pb-12 px-6 md:px-8 max-w-4xl mx-auto">
       <div class="flex flex-col items-center text-center gap-6">
@@ -91,7 +89,6 @@ const navItems = ref([
             View All <ArrowRight class="w-4 h-4" />
           </button>
         </div>
-
         <div class="grid grid-cols-1 gap-4">
           <div 
             v-for="order in purchaseHistory" 
@@ -123,12 +120,3 @@ const navItems = ref([
     </main>
   </div>
 </template>
-
-<style scoped>
-/* 移植原本 body 上的精緻點狀漸層背景 */
-.custom-bg {
-  background-color: #fff8f6; /* 對應你的 surface color */
-  background-image: radial-gradient(circle at 0% 0%, rgba(178,34,3,0.03) 0%, transparent 50%),
-                    radial-gradient(circle at 100% 100%, rgba(178,34,3,0.02) 0%, transparent 50%);
-}
-</style>

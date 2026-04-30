@@ -7,7 +7,7 @@ const props = defineProps<{
   targetDate: string | Date
 }>()
 
-// 取得當前時間（VueUse 會自動每秒更新）
+// 取得當前時間
 const now = useNow()
 
 // 計算剩下的時間差

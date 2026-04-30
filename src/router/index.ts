@@ -30,7 +30,7 @@ const routes = [
   },
   {
     path: '/userfile',
-    name: 'userfile',
+    name: 'UserFile',
     component: () => import('../view/components/UserFile.vue')
   },
   {
@@ -40,8 +40,13 @@ const routes = [
   },
   {
     path: '/news',
-    name: 'news',
+    name: 'News',
     component: () => import('../view/components/News.vue')
+  },
+  {
+    path: '/news/:id',
+    name: 'NewsDetail',
+    component: () => import('../view/components/NewsDetail.vue')
   }
 ]
 
