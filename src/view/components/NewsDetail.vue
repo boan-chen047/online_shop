@@ -1,14 +1,9 @@
 <script setup>
 import { ref } from 'vue'
-import { useRouter } from 'vue-router'
-const router = useRouter()
+import { RouterLink } from 'vue-router'
+import { Button } from '@/components/ui/button'
+import { ArrowLeft, Share2, Link, Bookmark } from 'lucide-vue-next'
 
-const goBack = () => {
-  // router.back()
-  console.log('Return to previous page')
-}
-
-// 模擬從 API 獲取的文章資料
 const article = ref({
   category: 'GLOBAL EXPANSION',
   dateRaw: '2024-10-24',
@@ -31,97 +26,93 @@ const article = ref({
 </script>
 
 <template>
-  <!-- 最外層容器，取代原本的 body 樣式 -->
-  <div class="article-page bg-surface font-body-md text-on-surface selection:bg-primary-container selection:text-on-primary">
+  <div class="article-bg bg-surface font-body text-on-surface antialiased">
     <main class="min-h-screen">
-      <div class="max-w-[800px] mx-auto px-gutter py-lg md:py-xl">
-        
+      <div class="max-w-200 mx-auto px-6 py-12 md:py-16">
+
         <!-- Back Button -->
-        <a 
-          href="#" 
-          @click.prevent="goBack"
-          class="inline-flex items-center gap-xs text-primary-container font-label-bold hover:translate-x-[-4px] transition-transform duration-200 mb-lg group"
+        <RouterLink
+          to="/news"
+          class="inline-flex items-center gap-2 text-primary font-bold hover:-translate-x-1 transition-transform duration-200 mb-8 group"
         >
-          <span class="material-symbols-outlined">arrow_back</span>
+          <ArrowLeft class="size-4" />
           <span>Back to News</span>
-        </a>
+        </RouterLink>
 
         <!-- Article Header -->
-        <header class="mb-lg">
-          <div class="flex items-center gap-sm mb-md">
-            <span class="bg-surface-container-high text-primary-container px-3 py-1 rounded-full text-[12px] font-bold tracking-widest uppercase">
+        <header class="mb-8">
+          <div class="flex items-center gap-3 mb-6">
+            <span class="bg-surface-container-highest text-primary px-3 py-1 rounded-full text-xs font-bold tracking-widest uppercase">
               {{ article.category }}
             </span>
-            <span class="text-on-surface-variant/60 text-label-bold">•</span>
-            <time class="text-on-surface-variant text-label-bold" :datetime="article.dateRaw">
+            <span class="text-on-surface-variant/60 text-xs font-bold">•</span>
+            <time class="text-on-surface-variant text-xs font-bold" :datetime="article.dateRaw">
               {{ article.dateFormatted }}
             </time>
-            <span class="text-on-surface-variant/60 text-label-bold">•</span>
-            <span class="text-on-surface-variant text-label-bold">{{ article.readTime }}</span>
+            <span class="text-on-surface-variant/60 text-xs font-bold">•</span>
+            <span class="text-on-surface-variant text-xs font-bold">{{ article.readTime }}</span>
           </div>
-          
-          <h1 class="font-display-xl text-display-xl text-on-surface leading-tight mb-md">
+
+          <h1 class="font-headline font-extrabold text-4xl text-on-surface leading-tight mb-6">
             {{ article.title }}
           </h1>
         </header>
 
         <!-- Featured Image -->
-        <div class="relative w-full aspect-video rounded-[32px] overflow-hidden shadow-[0_20px_50px_rgba(178,34,3,0.12)] mb-xl">
-          <img 
-            :alt="article.imageAlt" 
-            class="w-full h-full object-cover" 
+        <div class="relative w-full aspect-video rounded-4xl overflow-hidden shadow-[0_20px_50px_rgba(178,34,3,0.12)] mb-12">
+          <img
+            :alt="article.imageAlt"
+            class="w-full h-full object-cover"
             :src="article.imageUrl"
           />
         </div>
 
         <!-- Article Content -->
         <article class="prose prose-zinc max-w-none">
-          <p class="font-body-lg text-body-lg text-on-surface-variant leading-relaxed mb-lg">
+          <p class="font-body text-lg text-on-surface-variant leading-relaxed mb-8">
             {{ article.content.intro }}
           </p>
-          
-          <h2 class="font-headline-md text-headline-md text-on-surface mt-xl mb-md">
+
+          <h2 class="font-headline font-bold text-2xl text-on-surface mt-12 mb-6">
             {{ article.content.sectionTitle }}
           </h2>
-          
-          <p class="font-body-md text-body-md text-on-surface-variant leading-relaxed mb-md">
+
+          <p class="font-body text-base text-on-surface-variant leading-relaxed mb-6">
             {{ article.content.sectionBody1 }}
           </p>
-          
-          <blockquote class="border-l-4 border-primary-container bg-surface-container-low p-lg my-lg rounded-r-2xl">
-            <p class="font-headline-md italic text-primary-container leading-snug">
+
+          <blockquote class="border-l-4 border-primary bg-surface-container-low p-6 my-8 rounded-r-2xl">
+            <p class="font-headline italic text-primary leading-snug">
               {{ article.content.quote.text }}
             </p>
-            <cite class="block mt-md text-label-bold not-italic text-on-surface-variant">
+            <cite class="block mt-4 text-xs font-bold not-italic text-on-surface-variant">
               — {{ article.content.quote.author }}
             </cite>
           </blockquote>
-          
-          <p class="font-body-md text-body-md text-on-surface-variant leading-relaxed mb-xl">
+
+          <p class="font-body text-base text-on-surface-variant leading-relaxed mb-12">
             {{ article.content.sectionBody2 }}
           </p>
         </article>
 
         <!-- Share Row -->
-        <section class="border-t border-outline-variant/50 pt-lg mt-xl flex flex-col md:flex-row md:items-center justify-between gap-md">
-          <div class="flex items-center gap-md">
-            <span class="text-label-bold text-on-surface-variant uppercase tracking-wider">Share this article</span>
-            <div class="flex gap-xs">
-              <button class="w-10 h-10 flex items-center justify-center rounded-full border border-outline-variant hover:bg-surface-container-high transition-colors">
-                <span class="material-symbols-outlined text-on-surface-variant text-body-md">share</span>
-              </button>
-              <button class="w-10 h-10 flex items-center justify-center rounded-full border border-outline-variant hover:bg-surface-container-high transition-colors">
-                <span class="material-symbols-outlined text-on-surface-variant text-body-md">link</span>
-              </button>
+        <section class="border-t border-outline-variant/50 pt-6 mt-12 flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div class="flex items-center gap-4">
+            <span class="text-xs font-bold text-on-surface-variant uppercase tracking-wider">Share this article</span>
+            <div class="flex gap-2">
+              <Button variant="outline" size="icon" class="rounded-full border-outline-variant hover:bg-surface-container-high">
+                <Share2 class="size-4 text-on-surface-variant" />
+              </Button>
+              <Button variant="outline" size="icon" class="rounded-full border-outline-variant hover:bg-surface-container-high">
+                <Link class="size-4 text-on-surface-variant" />
+              </Button>
             </div>
           </div>
-          
-          <div class="flex gap-sm">
-            <button class="flex items-center gap-xs px-md py-xs rounded-full border border-primary-container text-primary-container font-label-bold hover:bg-primary-container hover:text-on-primary transition-all">
-              <span class="material-symbols-outlined text-[18px]">bookmark</span>
-              Save for later
-            </button>
-          </div>
+
+          <Button variant="outline" class="flex items-center gap-2 rounded-full border-primary text-primary hover:bg-primary hover:text-on-primary transition-all">
+            <Bookmark class="size-4" />
+            Save for later
+          </Button>
         </section>
 
       </div>
@@ -129,17 +120,10 @@ const article = ref({
   </div>
 </template>
 
-
-
 <style scoped>
-.article-page {
-  /* 將原本 body 的漸層背景移到這裡 */
-  background-image: 
-    radial-gradient(at 0% 0%, rgba(178,34,3,0.03) 0px, transparent 50%), 
+.article-bg {
+  background-image:
+    radial-gradient(at 0% 0%, rgba(178,34,3,0.03) 0px, transparent 50%),
     radial-gradient(at 100% 100%, rgba(178,34,3,0.02) 0px, transparent 50%);
-}
-
-.material-symbols-outlined {
-  font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
 }
 </style>

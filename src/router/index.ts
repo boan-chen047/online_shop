@@ -1,11 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router'
-// 引入所有的頁面元件
 import HomeView from '../view/components/HomeView.vue'
-import ProductList from '../view/components/ProductList.vue'
-import ProductDetails from '../view/components/ProductDetails.vue'
-import ShoppingCart from '../view/components/ShoppingCart.vue'
 
-// 定義路由規則
 const routes = [
   {
     path: '/',
@@ -50,10 +45,12 @@ const routes = [
   }
 ]
 
-// 建立 Router 實體
-  const router = createRouter({
-  history: createWebHistory(), 
+const router = createRouter({
+  history: createWebHistory(),
   routes,
+  scrollBehavior() {
+    return { top: 0, behavior: 'auto' }
+  }
 })
 
 export default router

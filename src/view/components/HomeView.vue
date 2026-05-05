@@ -209,8 +209,4 @@ const flashSaleItems = [
   }
 }
 
-.no-scrollbar::-webkit-scrollbar { display: none; }
-.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-.glass-effect { backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); }
-.primary-gradient { background: linear-gradient(135deg, #b22203 0%, #ff775b 100%); }
 </style>  

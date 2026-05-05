@@ -1,4 +1,17 @@
 <script setup>
+import { ref } from 'vue'
+import { RouterLink } from 'vue-router'
+import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
+import {
+  ChevronLeft, ChevronRight,
+  Star, Truck, Heart, Share2,
+  ShoppingBag, ShieldCheck,
+  Minus, Plus
+} from 'lucide-vue-next'
+
+const quantity = ref(1)
+
 const relatedItems = [
   {
     name: "Kinetic ChargePad Pro",
@@ -20,40 +33,43 @@ const relatedItems = [
     price: "$129.00",
     image: "https://lh3.googleusercontent.com/aida-public/AB6AXuAyNm_8fS3sjpNKYUQHPCxsB6kTsYhaSjWop7WY4kaAvIF9EHZ0LOM5DXR5N2qc-KY-3G8U6Yo5P33dV2eZLuTGq_eYYFBbuft1-UU77bF1Kk2O16ozz4XsmByQGj7jacFIdvBrPOoh8m5Ybv8kXQGynswbwSZzy5s1k6zeteBR1Qsi824p7uwE4iepNtWce6JqMDzZMVGAsrN0IdIn5rOajydFuMuNM_Sfj2XgRBDwof45vwi_9tnPoRvTEinw4jbe7-n5vNZULMI"
   }
-];
+]
 </script>
 
 <template>
   <div class="bg-surface font-body text-on-surface antialiased h-full">
-    
 
-    <main class="pt-24 pb-12 px-4 md:px-6 max-w-[1440px] mx-auto">
-      <nav class="mb-6 flex items-center gap-2 text-sm text-on-surface-variant font-label">
-        <span>Home</span>
-        <span class="material-symbols-outlined text-sm">chevron_right</span>
+    <main class="pt-24 pb-12 px-4 md:px-6 max-w-360 mx-auto">
+
+      <!-- Breadcrumb -->
+      <nav class="mb-6 flex items-center gap-2 text-sm text-on-surface-variant">
+        <RouterLink to="/" class="hover:text-on-surface transition-colors">Home</RouterLink>
+        <ChevronRight class="size-4" />
         <span>Tech & Gear</span>
-        <span class="material-symbols-outlined text-sm">chevron_right</span>
+        <ChevronRight class="size-4" />
         <span class="text-on-surface font-medium">Kinetic Ultra-Flow Headphones</span>
       </nav>
 
       <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 mb-16">
+
+        <!-- Image Gallery -->
         <div class="lg:col-span-7 flex flex-col gap-4">
           <div class="aspect-square bg-surface-container-lowest rounded-xl overflow-hidden relative group">
             <img alt="Main Product" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDxtDg9TrkUUHTs8f6sTfiuWh8jnG2hMuTm7p37TMYvkX8UMhkt7lX-VYI-A90muq5sdRG2eglC5KTwr1C1wtTZdquC_OKbYSzoSJyF5KdbeEkZTBq6yDTQnRftVpIrpSyWEVhAx4XjCsut3r-h_IHFsmJCEvjsq8xXTlxCQ3AXIH5gO2wa8v7SirgmRojjW5Q0vTfAGIDBaGSIMhO4Km5yEU-PtkmYWlFXnhfZw2oqUrGrP-DqPIVpWnOD7zfEM6FEMtpp_f0C0WA"/>
             <div class="absolute top-4 left-4 bg-primary text-on-primary px-3 py-1 rounded-full text-[10px] font-bold tracking-widest uppercase">New Arrival</div>
             <div class="absolute inset-y-0 left-2 flex items-center opacity-0 group-hover:opacity-100 transition-opacity">
-              <button class="bg-surface/80 backdrop-blur p-2 rounded-full shadow-lg cursor-pointer hover:bg-surface transition-colors">
-                <span class="material-symbols-outlined">chevron_left</span>
-              </button>
+              <Button size="icon" class="bg-surface/80 backdrop-blur h-9 w-9 rounded-full shadow-lg hover:bg-surface">
+                <ChevronLeft class="size-4" />
+              </Button>
             </div>
             <div class="absolute inset-y-0 right-2 flex items-center opacity-0 group-hover:opacity-100 transition-opacity">
-              <button class="bg-surface/80 backdrop-blur p-2 rounded-full shadow-lg cursor-pointer hover:bg-surface transition-colors">
-                <span class="material-symbols-outlined">chevron_right</span>
-              </button>
+              <Button size="icon" class="bg-surface/80 backdrop-blur h-9 w-9 rounded-full shadow-lg hover:bg-surface">
+                <ChevronRight class="size-4" />
+              </Button>
             </div>
           </div>
-          
-          <div class="flex gap-4 overflow-x-auto hide-scrollbar">
+
+          <div class="flex gap-4 overflow-x-auto no-scrollbar">
             <div class="w-24 h-24 shrink-0 rounded-lg border-2 border-primary overflow-hidden cursor-pointer">
               <img alt="Thumb 1" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAp8vOt2U2yL_pbhOk0jiEU3Rp6bH4REWEoE3Q2YBlKdzgy-kECT8mV_UpMwwwLmsKJ_oj9HgnCv3AF2lZZS0Z7NHlA2g_E283XKjeZPjUz596wLFjASazWxbNcXHXo9H_eAKVi-SEyZpqZFtpvsswf3dWpu9wvy2_4kWgrZiNUjSiErqO3ns_pRfBeyFXa7ENC20ohWCo7sBaKmO7_iy8-4xlaDblvPcX0bpHyeBB_YEf4Qw4V6hwWf-MYxrb2ur1B4MpBd3NzBM4"/>
             </div>
@@ -69,38 +85,43 @@ const relatedItems = [
           </div>
         </div>
 
+        <!-- Product Info -->
         <div class="lg:col-span-5 flex flex-col gap-6">
           <div>
-            <h1 class="text-3xl md:text-4xl font-headline font-extrabold text-on-surface leading-tight mb-2">Kinetic Ultra-Flow Noise Cancelling Wireless Headphones</h1>
+            <h1 class="text-3xl md:text-4xl font-headline font-extrabold text-on-surface leading-tight mb-2">
+              Kinetic Ultra-Flow Noise Cancelling Wireless Headphones
+            </h1>
             <div class="flex items-center gap-3 mb-4">
-              <div class="flex items-center text-primary">
-                <span class="material-symbols-outlined text-sm fill-1">star</span>
-                <span class="material-symbols-outlined text-sm fill-1">star</span>
-                <span class="material-symbols-outlined text-sm fill-1">star</span>
-                <span class="material-symbols-outlined text-sm fill-1">star</span>
-                <span class="material-symbols-outlined text-sm fill-0">star</span>
+              <div class="flex items-center gap-0.5 text-primary">
+                <Star class="size-4 fill-primary" />
+                <Star class="size-4 fill-primary" />
+                <Star class="size-4 fill-primary" />
+                <Star class="size-4 fill-primary" />
+                <Star class="size-4" />
               </div>
-              <span class="text-sm text-on-surface-variant font-label">(1,248 reviews)</span>
+              <span class="text-sm text-on-surface-variant">(1,248 reviews)</span>
               <div class="w-px h-4 bg-outline-variant/30 mx-2"></div>
-              <span class="text-sm text-secondary font-semibold font-label">Top Rated in Tech</span>
+              <span class="text-sm text-secondary font-semibold">Top Rated in Tech</span>
             </div>
             <div class="flex items-baseline gap-4 mb-6">
               <span class="text-4xl font-headline font-bold text-primary">$299.00</span>
               <span class="text-lg text-outline line-through">$450.00</span>
-              <span class="bg-error/10 text-error px-2 py-1 rounded text-sm font-bold">-35% OFF</span>
+              <Badge class="bg-error/10 text-error border-none font-bold">-35% OFF</Badge>
             </div>
           </div>
 
+          <!-- Shipping Info -->
           <div class="p-6 bg-surface-container-low rounded-xl border-l-4 border-primary">
             <p class="text-sm font-medium text-on-surface-variant flex items-center gap-2">
-              <span class="material-symbols-outlined text-primary text-xl">local_shipping</span>
+              <Truck class="text-primary size-5" />
               Free Express Shipping to <span class="text-on-surface font-bold">New York, NY</span>
             </p>
             <p class="text-xs text-outline mt-1 ml-7">Guaranteed arrival by Friday, June 14</p>
           </div>
 
+          <!-- Color Selector -->
           <div class="space-y-4">
-            <label class="text-sm font-bold uppercase tracking-wider text-outline font-label">Select Color</label>
+            <label class="text-sm font-bold uppercase tracking-wider text-outline">Select Color</label>
             <div class="flex gap-3">
               <button class="w-12 h-12 rounded-full bg-[#2d2f31] border-2 border-primary ring-2 ring-offset-2 ring-transparent transition-all cursor-pointer"></button>
               <button class="w-12 h-12 rounded-full bg-[#e1e2e5] border-2 border-transparent hover:border-outline transition-all cursor-pointer"></button>
@@ -108,51 +129,57 @@ const relatedItems = [
             </div>
           </div>
 
+          <!-- Actions -->
           <div class="flex flex-col gap-4 mt-4">
             <div class="flex gap-4">
               <div class="flex items-center bg-surface-container-highest rounded-lg px-4 py-2">
-                <button class="text-xl font-bold p-1 hover:text-primary transition-colors cursor-pointer">-</button>
-                <span class="mx-4 font-bold text-lg w-4 text-center">1</span>
-                <button class="text-xl font-bold p-1 hover:text-primary transition-colors cursor-pointer">+</button>
+                <Button variant="ghost" size="icon" class="h-8 w-8 hover:text-primary" :disabled="quantity <= 1" @click="quantity--">
+                  <Minus class="size-4" />
+                </Button>
+                <span class="mx-4 font-bold text-lg w-4 text-center">{{ quantity }}</span>
+                <Button variant="ghost" size="icon" class="h-8 w-8 hover:text-primary" @click="quantity++">
+                  <Plus class="size-4" />
+                </Button>
               </div>
-              <button class="flex-1 bg-gradient-to-br from-primary to-primary-container text-on-primary font-bold py-4 rounded-xl shadow-lg hover:shadow-primary/30 transition-all active:scale-[0.98] cursor-pointer">
+              <Button class="flex-1 primary-gradient text-on-primary font-bold py-6 rounded-xl shadow-lg hover:shadow-primary/30 transition-all active:scale-[0.98]">
                 Add to Cart
-              </button>
+              </Button>
             </div>
-            <button class="w-full bg-on-surface text-surface py-4 rounded-xl font-bold hover:bg-on-surface/90 transition-all active:scale-[0.98] cursor-pointer">
+            <Button variant="outline" class="w-full bg-on-surface text-surface border-on-surface font-bold hover:bg-on-surface/90 hover:text-surface transition-all active:scale-[0.98] py-6 rounded-xl">
               Buy Now
-            </button>
-            
+            </Button>
+
             <div class="flex justify-between items-center px-2 py-4 border-t border-outline-variant/20">
-              <button class="flex items-center gap-2 text-sm text-outline hover:text-primary transition-colors cursor-pointer font-label">
-                <span class="material-symbols-outlined">favorite</span> Add to Wishlist
-              </button>
-              <button class="flex items-center gap-2 text-sm text-outline hover:text-primary transition-colors cursor-pointer font-label">
-                <span class="material-symbols-outlined">share</span> Share Product
-              </button>
+              <Button variant="ghost" class="flex items-center gap-2 text-sm text-outline hover:text-primary px-0">
+                <Heart class="size-4" /> Add to Wishlist
+              </Button>
+              <Button variant="ghost" class="flex items-center gap-2 text-sm text-outline hover:text-primary px-0">
+                <Share2 class="size-4" /> Share Product
+              </Button>
             </div>
           </div>
         </div>
       </div>
 
+      <!-- Product Intelligence + Sidebar -->
       <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-16">
         <div class="md:col-span-2 bg-surface-container-lowest p-8 rounded-2xl">
           <h3 class="text-2xl font-headline font-bold mb-6">Product Intelligence</h3>
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-8 text-sm">
             <div>
-              <h4 class="font-bold text-primary mb-2 font-label">Sonic Flow Engine</h4>
+              <h4 class="font-bold text-primary mb-2">Sonic Flow Engine</h4>
               <p class="text-on-surface-variant leading-relaxed">Experience zero-latency audio processing with our proprietary chipset, delivering studio-grade sound in any environment.</p>
             </div>
             <div>
-              <h4 class="font-bold text-primary mb-2 font-label">Active Isolation</h4>
+              <h4 class="font-bold text-primary mb-2">Active Isolation</h4>
               <p class="text-on-surface-variant leading-relaxed">Dual-mic arrays cancel up to 98% of ambient noise, from jet engines to city bustle.</p>
             </div>
             <div>
-              <h4 class="font-bold text-primary mb-2 font-label">Battery Performance</h4>
+              <h4 class="font-bold text-primary mb-2">Battery Performance</h4>
               <p class="text-on-surface-variant leading-relaxed">60 hours of continuous playback with quick-charge capabilities (5 mins = 4 hours of juice).</p>
             </div>
             <div>
-              <h4 class="font-bold text-primary mb-2 font-label">Sustainable Design</h4>
+              <h4 class="font-bold text-primary mb-2">Sustainable Design</h4>
               <p class="text-on-surface-variant leading-relaxed">Constructed using 40% recycled aluminum and 100% biodegradable packaging.</p>
             </div>
           </div>
@@ -160,19 +187,19 @@ const relatedItems = [
             <p class="text-on-surface-variant leading-relaxed mb-4">
               The Kinetic Ultra-Flow represents the pinnacle of personal audio. Designed for creators, travelers, and audiophiles who refuse to compromise. Each component has been curated to provide a weightless fit and immersive experience.
             </p>
-            <img alt="Lifestyle Detail" class="w-full h-64 object-cover rounded-xl" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBvFv8qi1iSbX4MiagDRjrRFDiycuBu38G2DKkj5kGl5G5j59-kejjNuApgr9m-ravTxzXHB3Y94976AWy_nJzkFXFH9cofzDL3eMxpmL4SceYn44r8tB8fBi0KMVsmUA_nq9waSi_StqbogXBxRaoB4IccH3Au06ER_CfcnKqWI2LvFZtgTYCeIJ9zlGU65N7JyohYF4XHDbKoeSDSix2j_GkrB3JuCSepjnkKFMRYGIYdBXQHOsXkV9F-6Wpn9qtOS8ECP42oUHM"/>
+            <img alt="Lifestyle Detail" class="w-full h-64 object-cover rounded-xl" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBvFv8qi1iSbX4MiagDRjrRFDiycuBu38G2DKkj5kGl5G5j59-kejjNuApgr9m-ravTxzXHB3Y94976AWy_nJzkFXHF9cofzDL3eMxpmL4SceYn44r8tB8fBi0KMVsmUA_nq9waSi_StqbogXBxRaoB4IccH3Au06ER_CfcnKqWI2LvFZtgTYCeIJ9zlGU65N7JyohYF4XHDbKoeSDSix2j_GkrB3JuCSepjnkKFMRYGIYdBXQHOsXkV9F-6Wpn9qtOS8ECP42oUHM"/>
           </div>
         </div>
 
         <div class="flex flex-col gap-6">
           <div class="bg-secondary-container p-6 rounded-2xl">
-            <span class="material-symbols-outlined text-on-secondary-container text-4xl mb-4">verified_user</span>
+            <ShieldCheck class="text-on-secondary-container size-10 mb-4" />
             <h4 class="text-on-secondary-container font-bold text-lg mb-2">Kinetic Shield Warranty</h4>
             <p class="text-on-secondary-container/80 text-sm">Included 2-year premium coverage with accidental damage protection and 24/7 tech support.</p>
           </div>
           <div class="bg-surface-container-low p-6 rounded-2xl flex-1">
             <h4 class="font-headline font-bold mb-4">Detailed Specs</h4>
-            <ul class="space-y-3 text-sm font-label">
+            <ul class="space-y-3 text-sm">
               <li class="flex justify-between border-b border-outline-variant/10 pb-2">
                 <span class="text-outline">Driver Size</span>
                 <span class="font-semibold">40mm Dynamic</span>
@@ -198,13 +225,16 @@ const relatedItems = [
         </div>
       </div>
 
+      <!-- Reviews -->
       <section class="mb-16">
         <div class="flex justify-between items-end mb-8">
           <div>
             <h3 class="text-2xl font-headline font-bold">The Voice of the Community</h3>
-            <p class="text-on-surface-variant font-label">Real insights from 1,248 verified owners</p>
+            <p class="text-on-surface-variant">Real insights from 1,248 verified owners</p>
           </div>
-          <button class="bg-surface-container-highest px-6 py-2 rounded-full font-bold text-sm hover:bg-surface-container-high transition-colors cursor-pointer font-label">Write Review</button>
+          <Button variant="outline" class="bg-surface-container-highest px-6 py-2 rounded-full font-bold text-sm hover:bg-surface-container-high">
+            Write Review
+          </Button>
         </div>
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div class="bg-surface-container-lowest p-6 rounded-2xl shadow-sm border border-outline-variant/5">
@@ -215,12 +245,12 @@ const relatedItems = [
                 <p class="text-xs text-outline">Verified Buyer • 2 days ago</p>
               </div>
             </div>
-            <div class="flex text-primary mb-3">
-              <span class="material-symbols-outlined text-[12px] fill-1">star</span>
-              <span class="material-symbols-outlined text-[12px] fill-1">star</span>
-              <span class="material-symbols-outlined text-[12px] fill-1">star</span>
-              <span class="material-symbols-outlined text-[12px] fill-1">star</span>
-              <span class="material-symbols-outlined text-[12px] fill-1">star</span>
+            <div class="flex gap-0.5 text-primary mb-3">
+              <Star class="size-3 fill-primary" />
+              <Star class="size-3 fill-primary" />
+              <Star class="size-3 fill-primary" />
+              <Star class="size-3 fill-primary" />
+              <Star class="size-3 fill-primary" />
             </div>
             <p class="text-sm text-on-surface-variant leading-relaxed">The noise cancellation is honestly better than the industry giants. I use these for my daily commute and it's like flicking a silence switch on the world.</p>
           </div>
@@ -233,12 +263,12 @@ const relatedItems = [
                 <p class="text-xs text-outline">Verified Buyer • 1 week ago</p>
               </div>
             </div>
-            <div class="flex text-primary mb-3">
-              <span class="material-symbols-outlined text-[12px] fill-1">star</span>
-              <span class="material-symbols-outlined text-[12px] fill-1">star</span>
-              <span class="material-symbols-outlined text-[12px] fill-1">star</span>
-              <span class="material-symbols-outlined text-[12px] fill-1">star</span>
-              <span class="material-symbols-outlined text-[12px] fill-0">star</span>
+            <div class="flex gap-0.5 text-primary mb-3">
+              <Star class="size-3 fill-primary" />
+              <Star class="size-3 fill-primary" />
+              <Star class="size-3 fill-primary" />
+              <Star class="size-3 fill-primary" />
+              <Star class="size-3" />
             </div>
             <p class="text-sm text-on-surface-variant leading-relaxed">Battery life is insane. I've been using them for a week and still have 40% left. Design is premium and feels very solid but lightweight on the head.</p>
           </div>
@@ -251,120 +281,47 @@ const relatedItems = [
                 <p class="text-xs text-outline">Verified Buyer • 2 weeks ago</p>
               </div>
             </div>
-            <div class="flex text-primary mb-3">
-              <span class="material-symbols-outlined text-[12px] fill-1">star</span>
-              <span class="material-symbols-outlined text-[12px] fill-1">star</span>
-              <span class="material-symbols-outlined text-[12px] fill-1">star</span>
-              <span class="material-symbols-outlined text-[12px] fill-1">star</span>
-              <span class="material-symbols-outlined text-[12px] fill-1">star</span>
+            <div class="flex gap-0.5 text-primary mb-3">
+              <Star class="size-3 fill-primary" />
+              <Star class="size-3 fill-primary" />
+              <Star class="size-3 fill-primary" />
+              <Star class="size-3 fill-primary" />
+              <Star class="size-3 fill-primary" />
             </div>
             <p class="text-sm text-on-surface-variant leading-relaxed">The aesthetic alone is worth it. That copper/black combo is stunning. Packaging was eco-friendly which I really appreciate. Fast delivery!</p>
           </div>
         </div>
       </section>
 
+      <!-- Related Products -->
       <section>
         <h3 class="text-2xl font-headline font-bold mb-8">Pairs Perfectly With</h3>
         <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
           <div v-for="(item, i) in relatedItems" :key="i" class="group cursor-pointer">
-            <div class="aspect-[4/5] rounded-xl overflow-hidden bg-surface-container-low mb-3 relative">
+            <div class="aspect-4/5 rounded-xl overflow-hidden bg-surface-container-low mb-3 relative">
               <img :alt="item.name" :src="item.image" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"/>
               <div class="absolute bottom-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity">
-                <button class="bg-surface p-2 rounded-full shadow-lg text-primary cursor-pointer hover:bg-primary hover:text-on-primary transition-colors">
-                  <span class="material-symbols-outlined text-sm">shopping_bag</span>
-                </button>
+                <Button size="icon" class="bg-surface text-primary hover:bg-primary hover:text-on-primary h-8 w-8 rounded-full shadow-lg">
+                  <ShoppingBag class="size-4" />
+                </Button>
               </div>
             </div>
-            <h4 class="font-bold text-sm text-on-surface line-clamp-1 font-label">{{ item.name }}</h4>
+            <h4 class="font-bold text-sm text-on-surface line-clamp-1">{{ item.name }}</h4>
             <p class="text-primary font-bold text-sm">{{ item.price }}</p>
           </div>
         </div>
       </section>
     </main>
 
-    
-
+    <!-- Mobile Fixed Bottom Bar -->
     <div class="md:hidden fixed bottom-0 w-full bg-surface-container-lowest/90 backdrop-blur-lg border-t border-outline-variant/10 px-6 py-4 flex justify-between items-center z-50">
       <div class="flex items-baseline gap-2">
         <span class="text-xl font-bold text-primary">$299.00</span>
       </div>
-      <button class="bg-primary text-on-primary px-8 py-3 rounded-xl font-bold active:scale-95 transition-all cursor-pointer">
+      <Button class="primary-gradient text-on-primary px-8 py-3 rounded-xl font-bold active:scale-95 transition-all">
         Add to Cart
-      </button>
+      </Button>
     </div>
   </div>
 </template>
 
-<style scoped>
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap');
-
-.material-symbols-outlined {
-  font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
-}
-.fill-1 {
-  font-variation-settings: 'FILL' 1;
-}
-.fill-0 {
-  font-variation-settings: 'FILL' 0;
-}
-
-.hide-scrollbar::-webkit-scrollbar {
-  display: none;
-}
-.hide-scrollbar {
-  -ms-overflow-style: none;
-  scrollbar-width: none;
-}
-
-:root {
-  --primary: #b22203;
-  --on-primary: #ffefec;
-  --primary-container: #ff775b;
-  --on-primary-container: #4b0700;
-  --secondary: #0059b8;
-  --on-secondary: #eff2ff;
-  --secondary-container: #bdd2ff;
-  --on-secondary-container: #004592;
-  --surface: #f6f6f8;
-  --on-surface: #2d2f31;
-  --on-surface-variant: #5a5c5d;
-  --outline: #757779;
-  --outline-variant: #acadaf;
-  --error: #b41340;
-  --surface-container-low: #f0f1f3;
-  --surface-container-highest: #dbdde0;
-  --surface-container-lowest: #ffffff;
-  --tertiary-container: #de98ff;
-  --on-tertiary-container: #510c72;
-}
-
-/* Tailwind v4 Utility Class Map Emulation */
-.bg-surface { background-color: var(--surface); }
-.bg-surface-container-low { background-color: var(--surface-container-low); }
-.bg-surface-container-highest { background-color: var(--surface-container-highest); }
-.bg-surface-container-lowest { background-color: var(--surface-container-lowest); }
-.bg-primary { background-color: var(--primary); }
-.bg-primary-container { background-color: var(--primary-container); }
-.bg-secondary-container { background-color: var(--secondary-container); }
-.bg-tertiary-container { background-color: var(--tertiary-container); }
-.bg-error { background-color: var(--error); }
-.bg-on-surface { background-color: var(--on-surface); }
-
-.text-on-surface { color: var(--on-surface); }
-.text-on-surface-variant { color: var(--on-surface-variant); }
-.text-on-primary { color: var(--on-primary); }
-.text-on-secondary-container { color: var(--on-secondary-container); }
-.text-on-tertiary-container { color: var(--on-tertiary-container); }
-.text-primary { color: var(--primary); }
-.text-secondary { color: var(--secondary); }
-.text-outline { color: var(--outline); }
-.text-error { color: var(--error); }
-
-.border-primary { border-color: var(--primary); }
-.border-outline-variant { border-color: var(--outline-variant); }
-.border-surface-container { border-color: #e7e8ea; }
-
-.font-headline { font-family: 'Plus Jakarta Sans', sans-serif; }
-.font-body { font-family: 'Inter', sans-serif; }
-.font-label { font-family: 'Inter', sans-serif; }
-</style>

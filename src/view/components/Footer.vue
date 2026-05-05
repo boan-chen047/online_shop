@@ -1,14 +1,14 @@
 <template>
-  <footer class="w-full py-12 bg-[#f0f1f3] dark:bg-gray-950 flex flex-col md:flex-row justify-between items-center px-12 mt-20 font-['Inter'] text-xs uppercase tracking-widest">
+  <footer class="w-full py-12 bg-surface-container-low flex flex-col md:flex-row justify-between items-center px-12 mt-20 font-body text-xs uppercase tracking-widest">
     <div class="flex flex-col items-center md:items-start gap-4 mb-8 md:mb-0">
-      <span class="text-lg font-black text-[#2d2f31] dark:text-white">Shopping</span>
-      <p class="text-gray-500 normal-case tracking-normal">© 2026 Shopping Marketplace. All Rights Reserved.</p>
+      <span class="text-lg font-black text-on-surface">Shopping</span>
+      <p class="text-outline normal-case tracking-normal">© 2026 Shopping Marketplace. All Rights Reserved.</p>
     </div>
     <div class="flex flex-wrap justify-center gap-8">
-      <a class="text-gray-500 hover:text-gray-900 dark:hover:text-white underline underline-offset-4 transition-all" href="#">Privacy Policy</a>
-      <a class="text-gray-500 hover:text-gray-900 dark:hover:text-white underline underline-offset-4 transition-all" href="#">Terms of Service</a>
-      <a class="text-gray-500 hover:text-gray-900 dark:hover:text-white underline underline-offset-4 transition-all" href="#">Shipping Info</a>
-      <a class="text-gray-500 hover:text-gray-900 dark:hover:text-white underline underline-offset-4 transition-all" href="#">Contact Us</a>
+      <a class="text-outline hover:text-on-surface underline underline-offset-4 transition-all" href="#">Privacy Policy</a>
+      <a class="text-outline hover:text-on-surface underline underline-offset-4 transition-all" href="#">Terms of Service</a>
+      <a class="text-outline hover:text-on-surface underline underline-offset-4 transition-all" href="#">Shipping Info</a>
+      <a class="text-outline hover:text-on-surface underline underline-offset-4 transition-all" href="#">Contact Us</a>
     </div>
   </footer>
 </template>

@@ -1,5 +1,5 @@
 
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
 
 @import "tailwindcss";
 @import "tw-animate-css";
@@ -60,6 +60,12 @@
   --color-outline-variant: var(--outline-variant);
   --color-error-container: var(--error-container);
   --color-on-error-container: var(--on-error-container);
+  --color-surface-container: var(--surface-container);
+  --color-surface-container-high: var(--surface-container-high);
+  --color-on-secondary: var(--on-secondary);
+  --color-tertiary-container: var(--tertiary-container);
+  --color-on-tertiary-container: var(--on-tertiary-container);
+  --color-error: var(--error);
 }
 
 :root {
@@ -111,6 +117,13 @@
   --outline-variant: #acadaf;
   --error-container: #f74b6d;
   --on-error-container: #510017;
+  --surface-container: #e7e8ea;
+  --surface-container-high: #e1e2e5;
+  --secondary: #0059b8;
+  --on-secondary: #eff2ff;
+  --tertiary-container: #de98ff;
+  --on-tertiary-container: #510c72;
+  --error: #b41340;
 }
 
 .dark {
@@ -164,3 +177,8 @@
     @apply bg-background text-foreground;
   }
 }
+
+.primary-gradient { background: linear-gradient(135deg, #b22203 0%, #ff775b 100%); }
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+.glass-effect { backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); }
