@@ -1,6 +1,9 @@
+// 導入依賴
 import { createRouter, createWebHistory } from 'vue-router'
 import HomeView from '../view/components/HomeView.vue'
+// 導入依賴
 
+// 路由配置表
 const routes = [
   {
     path: '/',
@@ -14,7 +17,7 @@ const routes = [
   },
   {
     // 使用動態路由 (:id) 來抓取不同商品的編號
-    path: '/product/:id', 
+    path: '/product/:id',
     name: 'ProductDetails',
     component: () => import('../view/components/ProductDetails.vue')
   },
@@ -44,7 +47,9 @@ const routes = [
     component: () => import('../view/components/NewsDetail.vue')
   }
 ]
+// 路由配置表
 
+// 建立路由實例
 const router = createRouter({
   history: createWebHistory(),
   routes,
@@ -52,5 +57,6 @@ const router = createRouter({
     return { top: 0, behavior: 'auto' }
   }
 })
+// 建立路由實例
 
 export default router

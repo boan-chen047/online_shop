@@ -1,4 +1,5 @@
 <script setup>
+// 引入依賴
 import { ref } from 'vue'
 import { RouterLink } from 'vue-router'
 import { Button } from '@/components/ui/button'
@@ -11,14 +12,18 @@ import {
   Laptop,
   ChevronRight
 } from 'lucide-vue-next'
+// 引入依賴
 
+// 用戶資料
 const userProfile = ref({
   name: 'Alexander Wright',
   title: 'Chief Operations Officer at Zenith Corp',
   membership: 'Kinetic Elite Member',
   avatar: 'https://lh3.googleusercontent.com/aida-public/AB6AXuC6uUUj-6CGNMrYHfbQPxdwZ2Q2qjyA92-pgwSsjOnc-8mUyEm2JGKup-AEXpeaxNmB92UPQVNy8irNAjOGzCKlmV2p7rMOxMYWwFDQqiekjEKrfqUhI-lakuEA1dgokiQiRrzXqrQB33Qi8pO_gG3gqUUCySvGBnikFhbn9CpbV4T5fInNYX7sTHjd-mUUoHcFE7nSpez1z52uILOBroYk98n3iwbGF5ZLgPxUDZAskjaAiv6G9O_v9IYXW-re545JScyM9ROA7xM'
 })
+// 用戶資料
 
+// 購買歷史
 const purchaseHistory = ref([
   {
     id: 'KN-89231',
@@ -45,11 +50,14 @@ const purchaseHistory = ref([
     icon: Laptop
   }
 ])
+// 購買歷史
+
 </script>
 
 <template>
   <div class="bg-surface text-on-surface antialiased min-h-screen pb-16 font-body">
 
+    <!-- 用戶個人資訊頭部 -->
     <header class="relative pt-16 pb-12 px-6 md:px-8 max-w-4xl mx-auto">
       <div class="flex flex-col items-center text-center gap-6">
         <div class="relative">
@@ -70,8 +78,10 @@ const purchaseHistory = ref([
         </div>
       </div>
     </header>
+    <!-- 用戶個人資訊頭部 -->
 
     <main class="max-w-4xl mx-auto px-6 md:px-8">
+      <!-- 購買歷史記錄 -->
       <section class="space-y-6">
         <div class="flex items-center justify-between px-2 mb-2">
           <h2 class="font-bold text-2xl font-headline">Purchase History</h2>
@@ -107,6 +117,7 @@ const purchaseHistory = ref([
           </div>
         </div>
       </section>
+      <!-- 購買歷史記錄 -->
     </main>
   </div>
 </template>

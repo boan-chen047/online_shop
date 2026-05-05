@@ -1,11 +1,13 @@
-
+/* 字型與 Tailwind 導入 */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
 
 @import "tailwindcss";
 @import "tw-animate-css";
 
 @custom-variant dark (&:is(.dark *));
+/* 字型與 Tailwind 導入 */
 
+/* 主題變數配置 */
 @theme inline {
   --font-heading: var(--font-sans);
   --color-sidebar-ring: var(--sidebar-ring);
@@ -67,7 +69,9 @@
   --color-on-tertiary-container: var(--on-tertiary-container);
   --color-error: var(--error);
 }
+/* 主題變數配置 */
 
+/* 亮色主題顏色定義 */
 :root {
   --radius: 0.625rem;
   --background: oklch(1 0 0);
@@ -125,7 +129,9 @@
   --on-tertiary-container: #510c72;
   --error: #b41340;
 }
+/* 亮色主題顏色定義 */
 
+/* 深色主題顏色定義 */
 .dark {
   --background: oklch(0.145 0 0);
   --foreground: oklch(0.985 0 0);
@@ -159,7 +165,9 @@
   --sidebar-border: oklch(1 0 0 / 10%);
   --sidebar-ring: oklch(0.556 0 0);
 }
+/* 深色主題顏色定義 */
 
+/* 基礎樣式設定 */
 @layer base {
   * {
     @apply border-border outline-ring/50;
@@ -177,8 +185,11 @@
     @apply bg-background text-foreground;
   }
 }
+/* 基礎樣式設定 */
 
+/* 自訂義樣式類別 */
 .primary-gradient { background: linear-gradient(135deg, #b22203 0%, #ff775b 100%); }
 .no-scrollbar::-webkit-scrollbar { display: none; }
 .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 .glass-effect { backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); }
+/* 自訂義樣式類別 */

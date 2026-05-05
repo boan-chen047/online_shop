@@ -1,4 +1,5 @@
 <script setup>
+// 引入依賴
 import { ref } from 'vue'
 import { RouterLink } from 'vue-router'
 import { Button } from '@/components/ui/button'
@@ -9,7 +10,9 @@ import {
   ShoppingBag, ShieldCheck,
   Minus, Plus
 } from 'lucide-vue-next'
+// 引入依賴
 
+// 商品數據
 const quantity = ref(1)
 
 const relatedItems = [
@@ -34,6 +37,8 @@ const relatedItems = [
     image: "https://lh3.googleusercontent.com/aida-public/AB6AXuAyNm_8fS3sjpNKYUQHPCxsB6kTsYhaSjWop7WY4kaAvIF9EHZ0LOM5DXR5N2qc-KY-3G8U6Yo5P33dV2eZLuTGq_eYYFBbuft1-UU77bF1Kk2O16ozz4XsmByQGj7jacFIdvBrPOoh8m5Ybv8kXQGynswbwSZzy5s1k6zeteBR1Qsi824p7uwE4iepNtWce6JqMDzZMVGAsrN0IdIn5rOajydFuMuNM_Sfj2XgRBDwof45vwi_9tnPoRvTEinw4jbe7-n5vNZULMI"
   }
 ]
+// 商品數據
+
 </script>
 
 <template>
@@ -41,7 +46,7 @@ const relatedItems = [
 
     <main class="pt-24 pb-12 px-4 md:px-6 max-w-360 mx-auto">
 
-      <!-- Breadcrumb -->
+      <!-- 麵包屑導航 -->
       <nav class="mb-6 flex items-center gap-2 text-sm text-on-surface-variant">
         <RouterLink to="/" class="hover:text-on-surface transition-colors">Home</RouterLink>
         <ChevronRight class="size-4" />
@@ -49,10 +54,11 @@ const relatedItems = [
         <ChevronRight class="size-4" />
         <span class="text-on-surface font-medium">Kinetic Ultra-Flow Headphones</span>
       </nav>
+      <!-- 麵包屑導航 -->
 
       <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 mb-16">
 
-        <!-- Image Gallery -->
+        <!-- 商品圖片庫 -->
         <div class="lg:col-span-7 flex flex-col gap-4">
           <div class="aspect-square bg-surface-container-lowest rounded-xl overflow-hidden relative group">
             <img alt="Main Product" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDxtDg9TrkUUHTs8f6sTfiuWh8jnG2hMuTm7p37TMYvkX8UMhkt7lX-VYI-A90muq5sdRG2eglC5KTwr1C1wtTZdquC_OKbYSzoSJyF5KdbeEkZTBq6yDTQnRftVpIrpSyWEVhAx4XjCsut3r-h_IHFsmJCEvjsq8xXTlxCQ3AXIH5gO2wa8v7SirgmRojjW5Q0vTfAGIDBaGSIMhO4Km5yEU-PtkmYWlFXnhfZw2oqUrGrP-DqPIVpWnOD7zfEM6FEMtpp_f0C0WA"/>
@@ -84,8 +90,9 @@ const relatedItems = [
             </div>
           </div>
         </div>
+        <!-- 商品圖片庫 -->
 
-        <!-- Product Info -->
+        <!-- 商品資訊 -->
         <div class="lg:col-span-5 flex flex-col gap-6">
           <div>
             <h1 class="text-3xl md:text-4xl font-headline font-extrabold text-on-surface leading-tight mb-2">
@@ -110,7 +117,7 @@ const relatedItems = [
             </div>
           </div>
 
-          <!-- Shipping Info -->
+          <!-- 運送資訊 -->
           <div class="p-6 bg-surface-container-low rounded-xl border-l-4 border-primary">
             <p class="text-sm font-medium text-on-surface-variant flex items-center gap-2">
               <Truck class="text-primary size-5" />
@@ -118,8 +125,9 @@ const relatedItems = [
             </p>
             <p class="text-xs text-outline mt-1 ml-7">Guaranteed arrival by Friday, June 14</p>
           </div>
+          <!-- 運送資訊 -->
 
-          <!-- Color Selector -->
+          <!-- 顏色選擇 -->
           <div class="space-y-4">
             <label class="text-sm font-bold uppercase tracking-wider text-outline">Select Color</label>
             <div class="flex gap-3">
@@ -128,8 +136,9 @@ const relatedItems = [
               <button class="w-12 h-12 rounded-full bg-[#004da1] border-2 border-transparent hover:border-outline transition-all cursor-pointer"></button>
             </div>
           </div>
+          <!-- 顏色選擇 -->
 
-          <!-- Actions -->
+          <!-- 操作按鈕 -->
           <div class="flex flex-col gap-4 mt-4">
             <div class="flex gap-4">
               <div class="flex items-center bg-surface-container-highest rounded-lg px-4 py-2">
@@ -158,10 +167,11 @@ const relatedItems = [
               </Button>
             </div>
           </div>
+          <!-- 操作按鈕 -->
         </div>
       </div>
 
-      <!-- Product Intelligence + Sidebar -->
+      <!-- 商品情報與側邊欄 -->
       <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-16">
         <div class="md:col-span-2 bg-surface-container-lowest p-8 rounded-2xl">
           <h3 class="text-2xl font-headline font-bold mb-6">Product Intelligence</h3>
@@ -224,8 +234,9 @@ const relatedItems = [
           </div>
         </div>
       </div>
+      <!-- 商品情報與側邊欄 -->
 
-      <!-- Reviews -->
+      <!-- 用戶評論 -->
       <section class="mb-16">
         <div class="flex justify-between items-end mb-8">
           <div>
@@ -292,8 +303,9 @@ const relatedItems = [
           </div>
         </div>
       </section>
+      <!-- 用戶評論 -->
 
-      <!-- Related Products -->
+      <!-- 相關商品 -->
       <section>
         <h3 class="text-2xl font-headline font-bold mb-8">Pairs Perfectly With</h3>
         <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
@@ -311,9 +323,10 @@ const relatedItems = [
           </div>
         </div>
       </section>
+      <!-- 相關商品 -->
     </main>
 
-    <!-- Mobile Fixed Bottom Bar -->
+    <!-- 行動版底部固定欄 -->
     <div class="md:hidden fixed bottom-0 w-full bg-surface-container-lowest/90 backdrop-blur-lg border-t border-outline-variant/10 px-6 py-4 flex justify-between items-center z-50">
       <div class="flex items-baseline gap-2">
         <span class="text-xl font-bold text-primary">$299.00</span>
@@ -322,6 +335,7 @@ const relatedItems = [
         Add to Cart
       </Button>
     </div>
+    <!-- 行動版底部固定欄 -->
   </div>
 </template>
 

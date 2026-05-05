@@ -1,9 +1,12 @@
 <script setup>
+// 引入依賴
 import { ref } from 'vue'
 import { RouterLink } from 'vue-router'
 import { Button } from '@/components/ui/button'
 import { ArrowLeft, Share2, Link, Bookmark } from 'lucide-vue-next'
+// 引入依賴
 
+// 文章資料
 const article = ref({
   category: 'GLOBAL EXPANSION',
   dateRaw: '2024-10-24',
@@ -23,6 +26,8 @@ const article = ref({
     sectionBody2: 'As we look toward 2025, our focus remains on "Dynamic Professionalism"—a core brand pillar that demands we move fast without breaking the trust of our enterprise partners. The new centers are not just storage facilities; they are the heart of a local economy, powered by Kinetic\'s vision of a unified digital workspace.'
   }
 })
+// 文章資料
+
 </script>
 
 <template>
@@ -30,7 +35,7 @@ const article = ref({
     <main class="min-h-screen">
       <div class="max-w-200 mx-auto px-6 py-12 md:py-16">
 
-        <!-- Back Button -->
+        <!-- 返回按鈕 -->
         <RouterLink
           to="/news"
           class="inline-flex items-center gap-2 text-primary font-bold hover:-translate-x-1 transition-transform duration-200 mb-8 group"
@@ -38,8 +43,9 @@ const article = ref({
           <ArrowLeft class="size-4" />
           <span>Back to News</span>
         </RouterLink>
+        <!-- 返回按鈕 -->
 
-        <!-- Article Header -->
+        <!-- 文章標題 -->
         <header class="mb-8">
           <div class="flex items-center gap-3 mb-6">
             <span class="bg-surface-container-highest text-primary px-3 py-1 rounded-full text-xs font-bold tracking-widest uppercase">
@@ -57,8 +63,9 @@ const article = ref({
             {{ article.title }}
           </h1>
         </header>
+        <!-- 文章標題 -->
 
-        <!-- Featured Image -->
+        <!-- 特色圖片 -->
         <div class="relative w-full aspect-video rounded-4xl overflow-hidden shadow-[0_20px_50px_rgba(178,34,3,0.12)] mb-12">
           <img
             :alt="article.imageAlt"
@@ -66,8 +73,9 @@ const article = ref({
             :src="article.imageUrl"
           />
         </div>
+        <!-- 特色圖片 -->
 
-        <!-- Article Content -->
+        <!-- 文章內容 -->
         <article class="prose prose-zinc max-w-none">
           <p class="font-body text-lg text-on-surface-variant leading-relaxed mb-8">
             {{ article.content.intro }}
@@ -94,8 +102,9 @@ const article = ref({
             {{ article.content.sectionBody2 }}
           </p>
         </article>
+        <!-- 文章內容 -->
 
-        <!-- Share Row -->
+        <!-- 分享區域 -->
         <section class="border-t border-outline-variant/50 pt-6 mt-12 flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div class="flex items-center gap-4">
             <span class="text-xs font-bold text-on-surface-variant uppercase tracking-wider">Share this article</span>
@@ -114,6 +123,7 @@ const article = ref({
             Save for later
           </Button>
         </section>
+        <!-- 分享區域 -->
 
       </div>
     </main>

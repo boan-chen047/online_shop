@@ -1,9 +1,12 @@
 <script setup>
+// 引入依賴
 import { ref, computed } from 'vue'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Trash2, Minus, Plus } from 'lucide-vue-next'
+// 引入依賴
 
+// 購物車資料
 const cartItems = ref([
   {
     id: 1,
@@ -24,7 +27,9 @@ const cartItems = ref([
     alt: 'Minimalist white smart watch with high-resolution screen'
   }
 ])
+// 購物車資料
 
+// 優惠與計算
 const discount = ref(20.00)
 
 const subtotal = computed(() =>
@@ -34,13 +39,15 @@ const subtotal = computed(() =>
 const taxes = computed(() => subtotal.value * 0.08)
 
 const total = computed(() => subtotal.value + taxes.value - discount.value)
+// 優惠與計算
+
 </script>
 
 <template>
   <div class="bg-surface text-on-surface antialiased h-full font-body">
     <main class="pt-24 pb-8 px-4 md:px-8 max-w-[1280px] mx-auto">
 
-      <!-- Stepper -->
+      <!-- 購物步驟指示器 -->
       <div class="mb-12">
         <div class="flex items-center justify-center max-w-2xl mx-auto">
           <div class="flex flex-col items-center gap-2">
@@ -67,10 +74,11 @@ const total = computed(() => subtotal.value + taxes.value - discount.value)
           </div>
         </div>
       </div>
+      <!-- 購物步驟指示器 -->
 
       <div class="grid grid-cols-1 lg:grid-cols-12 gap-10 items-stretch">
 
-        <!-- Left Column -->
+        <!-- 左欄購物車商品 -->
         <div class="lg:col-span-8">
           <section class="bg-surface-container-lowest p-6 rounded-xl shadow-sm h-full">
             <div class="flex justify-between items-center mb-6">
@@ -108,8 +116,9 @@ const total = computed(() => subtotal.value + taxes.value - discount.value)
             </div>
           </section>
         </div>
+        <!-- 左欄購物車商品 -->
 
-        <!-- Right Column (Order Summary) -->
+        <!-- 右欄訂單摘要 -->
         <div class="lg:col-span-4">
           <section class="bg-surface-container-lowest p-8 rounded-xl shadow-sm h-full flex flex-col">
             <h2 class="text-xl font-bold font-headline mb-6">Order Summary</h2>
@@ -156,9 +165,10 @@ const total = computed(() => subtotal.value + taxes.value - discount.value)
           </section>
         </div>
       </div>
+      <!-- 右欄訂單摘要 -->
     </main>
 
-    <!-- Mobile Fixed Footer -->
+    <!-- 行動版底部固定欄 -->
     <div class="lg:hidden fixed bottom-0 left-0 w-full p-4 bg-surface-container-lowest border-t border-surface-container shadow-2xl z-40">
       <div class="flex items-center justify-between gap-4">
         <div>
@@ -170,5 +180,6 @@ const total = computed(() => subtotal.value + taxes.value - discount.value)
         </Button>
       </div>
     </div>
+    <!-- 行動版底部固定欄 -->
   </div>
 </template>
