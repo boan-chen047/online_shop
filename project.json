@@ -1,0 +1,28 @@
+{
+  "$schema": "./node_modules/nx/schemas/project-schema.json",
+  "name": "online_shop",
+  "projectType": "application",
+  "sourceRoot": "src",
+  "targets": {
+    "dev": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "pnpm dev"
+      }
+    },
+    "build": {
+      "executor": "nx:run-commands",
+      "outputs": ["{projectRoot}/dist"],
+      "options": {
+        "command": "pnpm build"
+      }
+    },
+    "preview": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "pnpm preview"
+      }
+    }
+  },
+  "tags": ["type:app", "scope:shop"]
+}

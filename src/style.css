@@ -176,15 +176,6 @@
     @apply bg-surface text-on-surface font-body antialiased;;
   }
 }
-
-@layer base {
-  * {
-    @apply border-border outline-ring/50;
-  }
-  body {
-    @apply bg-background text-foreground;
-  }
-}
 /* 基礎樣式設定 */
 
 /* 自訂義樣式類別 */

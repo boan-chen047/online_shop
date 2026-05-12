@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import { useRoute, RouterLink } from 'vue-router'
 import { Input } from '@/components/ui/input'
-import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
+import { useAuth } from '@/composables/useAuth'
+import { useCart } from '@/composables/useCart'
 import {
   NavigationMenu,
   NavigationMenuContent,
@@ -13,9 +14,9 @@ import {
 } from '@/components/ui/navigation-menu'
 
 import { 
-  Search, ShoppingCart, User, ChevronDown, 
+  Search, ShoppingCart, User,
   LayoutGrid, Cookie, Coffee, Laptop, Watch,
-  Home as HomeIcon, Grid, Heart, ShoppingBag 
+  Home as HomeIcon, Grid, ShoppingBag
 } from 'lucide-vue-next'
 
 // 商品類別定義
@@ -29,6 +30,8 @@ const products = [
 ]
 
 const route = useRoute()
+const { itemCount } = useCart()
+const { currentUser, userProfile, userInitials } = useAuth()
 
 /**
  * 導覽列動態樣式邏輯
@@ -55,7 +58,7 @@ const navItemClass = (path: string) => {
 
 <template>
   <nav class="fixed top-0 w-full z-50 bg-[#f6f6f8]/80 dark:bg-gray-900/80 backdrop-blur-xl border-b border-border/40 shadow-sm font-['Plus_Jakarta_Sans'] antialiased">
-    <div class="flex justify-between items-center px-6 py-4 max-w-[1440px] mx-auto">
+    <div class="mx-auto flex max-w-[94vw] items-center justify-between px-5 py-4">
       
       <div class="flex items-center gap-6">
         <RouterLink to="/" class="text-2xl font-bold tracking-tighter text-primary mr-4">
@@ -117,15 +120,24 @@ const navItemClass = (path: string) => {
         </div>
       </div>
       
-      <div class="flex items-center gap-1">
+      <div class="hidden md:flex items-center gap-1">
         <RouterLink to="/cart" :class="navItemClass('/cart')" class="gap-2">
-          <ShoppingCart class="size-5" />
+          <span class="relative">
+            <ShoppingCart class="size-5" />
+            <span v-if="itemCount" class="absolute -right-2 -top-2 flex min-w-4 h-4 items-center justify-center rounded-full bg-primary px-1 text-[10px] leading-none text-on-primary">
+              {{ itemCount }}
+            </span>
+          </span>
           <span class="font-bold text-xs">Shopping Cart</span>
         </RouterLink>
         
-        <RouterLink to="/userfile" :class="navItemClass('/profile')" class="gap-2">
-          <User class="size-5" />
-          <span class="font-bold text-xs">User Profile</span>
+        <RouterLink to="/userfile" :class="navItemClass('/userfile')" class="gap-2">
+          <img v-if="currentUser && userProfile.avatar" :src="userProfile.avatar" :alt="userProfile.name" class="size-6 rounded-full object-cover">
+          <span v-else-if="currentUser" class="flex size-6 items-center justify-center rounded-full bg-primary text-[10px] font-black text-on-primary">
+            {{ userInitials }}
+          </span>
+          <User v-else class="size-5" />
+          <span class="font-bold text-xs">{{ currentUser ? userProfile.name : 'User Profile' }}</span>
         </RouterLink>
       </div>
       
@@ -142,11 +154,20 @@ const navItemClass = (path: string) => {
       <span class="text-[10px] font-bold">Browse</span>
     </RouterLink>
     <RouterLink to="/cart" class="flex flex-col items-center gap-1 text-on-surface-variant hover:text-primary transition-colors">
-      <ShoppingBag class="size-6" />
+      <span class="relative">
+        <ShoppingBag class="size-6" />
+        <span v-if="itemCount" class="absolute -right-2 -top-2 flex min-w-4 h-4 items-center justify-center rounded-full bg-primary px-1 text-[10px] leading-none text-on-primary">
+          {{ itemCount }}
+        </span>
+      </span>
       <span class="text-[10px] font-bold">Cart</span>
     </RouterLink>
     <RouterLink to="/userfile" class="flex flex-col items-center gap-1 text-on-surface-variant hover:text-primary transition-colors">
-      <User class="size-6" />
+      <img v-if="currentUser && userProfile.avatar" :src="userProfile.avatar" :alt="userProfile.name" class="size-6 rounded-full object-cover">
+      <span v-else-if="currentUser" class="flex size-6 items-center justify-center rounded-full bg-primary text-[10px] font-black text-on-primary">
+        {{ userInitials }}
+      </span>
+      <User v-else class="size-6" />
       <span class="text-[10px] font-bold">Account</span>
     </RouterLink>
   </nav>

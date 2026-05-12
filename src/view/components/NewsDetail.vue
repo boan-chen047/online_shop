@@ -1,30 +1,17 @@
-<script setup>
+<script setup lang="ts">
 // 引入依賴
-import { ref } from 'vue'
-import { RouterLink } from 'vue-router'
+import { computed } from 'vue'
+import { RouterLink, useRoute } from 'vue-router'
 import { Button } from '@/components/ui/button'
+import { getNewsById, newsItems } from '@/data/news'
 import { ArrowLeft, Share2, Link, Bookmark } from 'lucide-vue-next'
 // 引入依賴
 
 // 文章資料
-const article = ref({
-  category: 'GLOBAL EXPANSION',
-  dateRaw: '2024-10-24',
-  dateFormatted: 'Oct 24, 2024',
-  readTime: '6 min read',
-  title: 'Kinetic Scaling: Redefining Logistics Infrastructure in Emerging Markets',
-  imageUrl: 'https://lh3.googleusercontent.com/aida-public/AB6AXuBvUem801bZe11XWswiTy0LRr-N78E-YDzNQPYkRPxJIutxsGfMcrxMSt2xjwoRzgEG5tXa8Xca3TcCdg7SFSyUAst0ipObB21gCZrl9eyUn9J7VdY-oxxN4A2Zv4spF4FkRJm_28PWjnd1xgvN6R73m0WyYbKms8TOTRmxOYkcEiTv9fm1KeG_ua0BFVuYdPZJAKqEtZlhy8Xxe78DJXhuqV-O8hPYMQ6FffuYQYv0AufYRuiDS7G6cFXH4ouHEPN9QREB-o3-E2I',
-  imageAlt: 'Modern minimalist corporate office building with clean glass lines and concrete textures under bright natural daylight',
-  content: {
-    intro: 'In an era defined by rapid digital transformation, Kinetic is taking a bold step forward by physicalizing the digital shelf. Our recent initiatives across the Southeast Asian corridor mark a pivotal shift from traditional warehousing to agile, tech-enabled fulfillment hubs.',
-    sectionTitle: 'Bridging the Infrastructure Gap',
-    sectionBody1: 'The challenge has never been a lack of demand, but rather a lack of connective tissue. By integrating proprietary AI-routing with architectural precision, Kinetic has managed to reduce last-mile delivery windows by 40% in previously unreachable zones.',
-    quote: {
-      text: '"Expansion is not merely about geographic presence; it is about the structural integrity of the service we provide to every merchant, regardless of their location."',
-      author: 'Elena Rossi, Chief Operating Officer'
-    },
-    sectionBody2: 'As we look toward 2025, our focus remains on "Dynamic Professionalism"—a core brand pillar that demands we move fast without breaking the trust of our enterprise partners. The new centers are not just storage facilities; they are the heart of a local economy, powered by Kinetic\'s vision of a unified digital workspace.'
-  }
+const route = useRoute()
+const article = computed(() => {
+  const id = Number(route.params.id)
+  return getNewsById(id) ?? newsItems[0]
 })
 // 文章資料
 
@@ -49,11 +36,11 @@ const article = ref({
         <header class="mb-8">
           <div class="flex items-center gap-3 mb-6">
             <span class="bg-surface-container-highest text-primary px-3 py-1 rounded-full text-xs font-bold tracking-widest uppercase">
-              {{ article.category }}
+              {{ article.tag }}
             </span>
             <span class="text-on-surface-variant/60 text-xs font-bold">•</span>
             <time class="text-on-surface-variant text-xs font-bold" :datetime="article.dateRaw">
-              {{ article.dateFormatted }}
+              {{ article.date }}
             </time>
             <span class="text-on-surface-variant/60 text-xs font-bold">•</span>
             <span class="text-on-surface-variant text-xs font-bold">{{ article.readTime }}</span>
@@ -68,9 +55,9 @@ const article = ref({
         <!-- 特色圖片 -->
         <div class="relative w-full aspect-video rounded-4xl overflow-hidden shadow-[0_20px_50px_rgba(178,34,3,0.12)] mb-12">
           <img
-            :alt="article.imageAlt"
+            :alt="article.alt"
             class="w-full h-full object-cover"
-            :src="article.imageUrl"
+            :src="article.image"
           />
         </div>
         <!-- 特色圖片 -->
