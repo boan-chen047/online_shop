@@ -50,6 +50,11 @@ const routes = [
     path: '/admin/orders',
     name: 'AdminOrders',
     component: () => import('../view/components/AdminOrders.vue')
+  },
+  {
+    path: '/admin/products',
+    name: 'AdminProducts',
+    component: () => import('../view/components/AdminProducts.vue')
   }
 ]
 // 路由配置表

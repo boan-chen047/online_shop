@@ -17,7 +17,7 @@ import {
 import {
   Search, ShoppingCart, User,
   LayoutGrid, Cookie, Coffee, Laptop, Watch,
-  Home as HomeIcon, Grid, ShoppingBag, ClipboardList
+  Home as HomeIcon, Grid, ShoppingBag, ClipboardList, Package
 } from 'lucide-vue-next'
 
 // 商品類別定義
@@ -144,12 +144,17 @@ const navItemClass = (path: string) => {
       </form>
       
       <div class="hidden md:flex items-center gap-1">
-        <RouterLink v-if="currentUser" to="/admin/orders" :class="navItemClass('/admin')" class="gap-2">
+        <RouterLink v-if="isAdmin" to="/admin/products" :class="navItemClass('/admin/products')" class="gap-2">
+          <Package class="size-5" />
+          <span class="font-bold text-xs">商品管理</span>
+        </RouterLink>
+
+        <RouterLink v-if="currentUser" to="/admin/orders" :class="navItemClass('/admin/orders')" class="gap-2">
           <ClipboardList class="size-5" />
           <span class="font-bold text-xs">{{ isAdmin ? '訂單管理' : '我的訂單' }}</span>
         </RouterLink>
 
-        <RouterLink to="/cart" :class="navItemClass('/cart')" class="gap-2">
+        <RouterLink v-if="!isAdmin" to="/cart" :class="navItemClass('/cart')" class="gap-2">
           <span class="relative">
             <ShoppingCart class="size-5" />
             <span v-if="itemCount" class="absolute -right-2 -top-2 flex min-w-4 h-4 items-center justify-center rounded-full bg-primary px-1 text-[10px] leading-none text-on-primary">
@@ -181,7 +186,11 @@ const navItemClass = (path: string) => {
       <Grid class="size-6" />
       <span class="text-[10px] font-bold">Browse</span>
     </RouterLink>
-    <RouterLink to="/cart" class="flex flex-col items-center gap-1 text-on-surface-variant hover:text-primary transition-colors">
+    <RouterLink v-if="isAdmin" to="/admin/products" class="flex flex-col items-center gap-1 text-on-surface-variant hover:text-primary transition-colors">
+      <Package class="size-6" />
+      <span class="text-[10px] font-bold">商品</span>
+    </RouterLink>
+    <RouterLink v-else to="/cart" class="flex flex-col items-center gap-1 text-on-surface-variant hover:text-primary transition-colors">
       <span class="relative">
         <ShoppingBag class="size-6" />
         <span v-if="itemCount" class="absolute -right-2 -top-2 flex min-w-4 h-4 items-center justify-center rounded-full bg-primary px-1 text-[10px] leading-none text-on-primary">

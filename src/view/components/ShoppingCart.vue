@@ -1,6 +1,6 @@
 <script setup lang="ts">
 // 引入依賴
-import { computed, onMounted, ref } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 import { RouterLink } from 'vue-router'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -127,6 +127,11 @@ function handleCtaClick() {
     void handleSubmitOrder()
   }
 }
+
+// 切換結帳步驟時捲回頁面最上方，避免停在原本的捲動位置
+watch(step, () => {
+  window.scrollTo({ top: 0, behavior: 'smooth' })
+})
 
 onMounted(() => {
   void loadCart({ force: true })
