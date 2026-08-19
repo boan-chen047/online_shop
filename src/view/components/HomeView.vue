@@ -49,7 +49,7 @@ onMounted(() => {
       <!-- sales -->
       <section class="mb-14 px-5">
         <!-- sales最上方說明 -->
-        <div class="mb-7 flex justify-between">
+        <div class="mb-7 flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
           <div>
             <div class="mb-1 flex items-center gap-2.5">
               <Zap class="size-7 fill-primary text-primary" />

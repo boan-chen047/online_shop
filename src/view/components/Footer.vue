@@ -1,6 +1,6 @@
 <template>
   <!-- 頁尾區域 -->
-  <footer class="mt-20 w-full bg-surface-container-low py-12 font-body text-xs uppercase tracking-widest">
+  <footer class="mt-10 w-full bg-surface-container-low py-12 font-body text-xs uppercase tracking-widest">
     <div class="mx-auto flex max-w-[94vw] flex-col items-center justify-between px-5 md:flex-row">
       <!-- 品牌與版權資訊 -->
       <div class="mb-8 flex flex-col items-center gap-4 md:mb-0 md:items-start">

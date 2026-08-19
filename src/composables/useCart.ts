@@ -244,11 +244,23 @@ async function addToCart(product: CatalogProduct, quantity = 1) {
   }
 }
 
-async function checkoutSelectedCart() {
+export interface ShippingInfo {
+  recipientName: string
+  recipientPhone: string
+  shippingAddress: string
+  note?: string
+}
+
+async function checkoutSelectedCart(shippingInfo: ShippingInfo) {
   cartError.value = ''
 
   try {
-    const { data, error } = await supabase.rpc('create_order_from_cart')
+    const { data, error } = await supabase.rpc('create_order_from_cart', {
+      p_recipient_name: shippingInfo.recipientName,
+      p_recipient_phone: shippingInfo.recipientPhone,
+      p_shipping_address: shippingInfo.shippingAddress,
+      p_note: shippingInfo.note || null,
+    })
 
     if (error) {
       throw error

@@ -29,6 +29,9 @@ const galleryImages = computed(() =>
   product.value?.images.length ? product.value.images : [],
 )
 
+const isSoldOut = computed(() => Boolean(product.value) && !product.value?.inStock)
+const canIncrease = computed(() => Boolean(product.value) && quantity.value < (product.value?.stock ?? 0))
+
 async function loadProduct() {
   const identifier = String(route.params.id ?? '')
 
@@ -55,7 +58,7 @@ async function loadProduct() {
 }
 
 async function handleAddToCart() {
-  if (!product.value) {
+  if (!product.value || isSoldOut.value) {
     return
   }
 
@@ -87,7 +90,7 @@ watch(
 
 <template>
   <div class="bg-surface font-body text-on-surface antialiased h-full">
-    <main class="mx-auto max-w-[94vw] px-5 pt-24 pb-12">
+    <main class="mx-auto max-w-[94vw] px-5 pt-10 pb-6">
       <nav class="mb-6 flex items-center gap-2 text-sm text-on-surface-variant">
         <RouterLink to="/" class="hover:text-on-surface transition-colors">首頁</RouterLink>
         <ChevronRight class="size-4" />
@@ -112,9 +115,9 @@ watch(
       </div>
 
       <template v-else-if="product">
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12 items-stretch">
+        <div class="mb-12 grid grid-cols-1 gap-8 lg:grid-cols-[minmax(0,1.1fr)_minmax(360px,0.9fr)] lg:items-stretch">
           <div class="flex flex-col gap-4">
-            <div class="h-full min-h-[420px] max-h-[640px] bg-surface-container-lowest rounded-xl overflow-hidden relative group lg:aspect-[4/3]">
+            <div class="relative aspect-[4/3] overflow-hidden rounded-xl bg-surface-container-lowest">
               <img :alt="product.name" class="w-full h-full object-cover" :src="selectedImage || product.image"/>
               <div v-if="product.tag" class="absolute top-4 left-4 bg-primary text-on-primary px-3 py-1 rounded-full text-[10px] font-bold tracking-widest">
                 {{ product.tag }}
@@ -135,7 +138,7 @@ watch(
             </div>
           </div>
 
-          <div class="bg-surface-container-lowest rounded-xl p-6 md:p-8 shadow-sm flex min-h-[420px] flex-col justify-between gap-8">
+          <div class="flex flex-col justify-center rounded-xl border border-outline-variant/20 bg-surface-container-lowest p-6 shadow-sm md:p-8">
             <div class="space-y-5">
               <p class="mb-3 text-sm font-bold text-primary">{{ product.categoryName }}</p>
               <h1 class="max-w-xl text-3xl md:text-4xl font-headline font-extrabold text-on-surface leading-tight">
@@ -148,30 +151,32 @@ watch(
                   省 {{ discountPercent }}%
                 </Badge>
               </div>
+              <p v-if="isSoldOut" class="text-sm font-bold text-error">此商品目前已售完</p>
+              <p v-else-if="product.stock <= 5" class="text-sm font-bold text-error">庫存僅剩 {{ product.stock }} 件</p>
             </div>
 
-            <div class="flex flex-col gap-4">
+            <div class="mt-8 border-t border-outline-variant/20 pt-6">
               <div class="flex flex-col gap-4 sm:flex-row">
-                <div class="flex h-16 items-center justify-center bg-surface-container-highest rounded-lg px-4 py-2 sm:w-52">
-                  <Button variant="ghost" size="icon" class="h-8 w-8 hover:text-primary" :disabled="quantity <= 1" @click="quantity--">
+                <div class="flex h-16 items-center justify-center rounded-lg bg-surface-container-highest px-4 py-2 sm:w-44">
+                  <Button variant="ghost" size="icon" class="h-8 w-8 hover:text-primary" :disabled="quantity <= 1 || isSoldOut" @click="quantity--">
                     <Minus class="size-4" />
                   </Button>
                   <span class="mx-4 font-bold text-lg w-4 text-center">{{ quantity }}</span>
-                  <Button variant="ghost" size="icon" class="h-8 w-8 hover:text-primary" @click="quantity++">
+                  <Button variant="ghost" size="icon" class="h-8 w-8 hover:text-primary" :disabled="!canIncrease" @click="quantity++">
                     <Plus class="size-4" />
                   </Button>
                 </div>
-                <Button class="h-16 flex-1 primary-gradient text-on-primary font-bold rounded-xl shadow-lg hover:shadow-primary/30 transition-all active:scale-[0.98]" :disabled="isAddingToCart" @click="handleAddToCart">
+                <Button class="hidden h-16 flex-1 rounded-xl primary-gradient font-bold text-on-primary shadow-lg transition-all hover:shadow-primary/30 active:scale-[0.98] md:flex disabled:opacity-60 disabled:pointer-events-none" :disabled="isAddingToCart || isSoldOut" @click="handleAddToCart">
                   <ShoppingBag class="mr-2 size-5" />
-                  {{ isAddingToCart ? '加入中' : '加入購物車' }}
+                  {{ isSoldOut ? '已售完' : (isAddingToCart ? '加入中' : '加入購物車') }}
                 </Button>
               </div>
             </div>
           </div>
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-16">
-          <div class="md:col-span-2 bg-surface-container-lowest p-8 rounded-xl">
+        <div class="grid grid-cols-1 gap-8 lg:grid-cols-[minmax(0,1.1fr)_minmax(360px,0.9fr)] lg:items-stretch">
+          <div class="bg-surface-container-lowest p-8 rounded-xl">
             <h3 class="text-2xl font-headline font-bold mb-4">商品說明</h3>
             <p class="text-on-surface-variant leading-relaxed">
               {{ product.description }}
@@ -196,8 +201,8 @@ watch(
       <div class="flex items-baseline gap-2">
         <span class="text-xl font-bold text-primary">{{ formatPrice(product.price) }}</span>
       </div>
-      <Button class="primary-gradient text-on-primary px-8 py-3 rounded-xl font-bold active:scale-95 transition-all" :disabled="isAddingToCart" @click="handleAddToCart">
-        {{ isAddingToCart ? '加入中' : '加入購物車' }}
+      <Button class="primary-gradient text-on-primary px-8 py-3 rounded-xl font-bold active:scale-95 transition-all disabled:opacity-60 disabled:pointer-events-none" :disabled="isAddingToCart || isSoldOut" @click="handleAddToCart">
+        {{ isSoldOut ? '已售完' : (isAddingToCart ? '加入中' : '加入購物車') }}
       </Button>
     </div>
   </div>

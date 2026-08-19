@@ -45,6 +45,11 @@ const routes = [
     path: '/news/:id',
     name: 'NewsDetail',
     component: () => import('../view/components/NewsDetail.vue')
+  },
+  {
+    path: '/admin/orders',
+    name: 'AdminOrders',
+    component: () => import('../view/components/AdminOrders.vue')
   }
 ]
 // 路由配置表

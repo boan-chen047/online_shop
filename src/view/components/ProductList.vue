@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from 'vue'
-import { useRoute, RouterLink } from 'vue-router'
+import { useRoute, useRouter, RouterLink } from 'vue-router'
 import { Button } from '@/components/ui/button'
-import { ArrowRight, ChevronRight, ChevronDown } from 'lucide-vue-next'
+import { ArrowRight, ChevronRight, ChevronDown, X } from 'lucide-vue-next'
 import { formatPrice, useCatalog } from '@/composables/useCatalog'
 import {
   Pagination,
@@ -14,6 +14,7 @@ import {
 } from '@/components/ui/pagination'
 
 const route = useRoute()
+const router = useRouter()
 const { categories, products, isLoading, errorMessage, loadCatalog } = useCatalog()
 
 onMounted(() => {
@@ -32,12 +33,39 @@ const currentCategoryName = computed(() => {
 const sortBy = ref('推薦排序')
 const currentPage = ref(1)
 const itemsPerPage = 16
+const searchQuery = computed(() =>
+  typeof route.query.search === 'string' ? route.query.search.trim() : '',
+)
+
+function matchesSearch(product: (typeof products.value)[number]) {
+  if (!searchQuery.value) {
+    return true
+  }
+
+  const search = searchQuery.value.toLocaleLowerCase('zh-TW')
+  const searchableText = [product.name, product.categoryName, product.description, product.tag]
+    .filter(Boolean)
+    .join(' ')
+    .toLocaleLowerCase('zh-TW')
+
+  return searchableText.includes(search)
+}
+
+function clearSearch() {
+  const category = typeof route.query.category === 'string' ? route.query.category : ''
+  void router.push({
+    name: 'Products',
+    query: category ? { category } : {},
+  })
+}
 
 const filteredProducts = computed(() => {
   const category = typeof route.query.category === 'string' ? route.query.category : ''
-  return category && category in categoryNames.value
+  const categoryProducts = category && category in categoryNames.value
     ? products.value.filter(product => product.categorySlug === category)
     : products.value
+
+  return categoryProducts.filter(matchesSearch)
 })
 
 const sortedProducts = computed(() => {
@@ -58,7 +86,7 @@ const paginatedProducts = computed(() => {
 })
 
 watch(
-  () => route.query.category,
+  () => [route.query.category, route.query.search],
   () => {
     currentPage.value = 1
   }
@@ -76,7 +104,7 @@ watch(
             <ChevronRight class="size-4" />
             <span class="font-medium text-on-surface">{{ currentCategoryName }}</span>
           </nav>
-          
+
           <div class="flex items-center gap-3">
             <span class="text-sm text-outline">排序：</span>
             <div class="relative">
@@ -89,6 +117,16 @@ watch(
               <ChevronDown class="size-4 pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-on-surface" />
             </div>
           </div>
+        </div>
+
+        <div v-if="searchQuery" class="mb-6 flex flex-wrap items-center justify-between gap-3 rounded-xl bg-primary/5 px-4 py-3 text-sm">
+          <p class="text-on-surface-variant">
+            搜尋「<span class="font-bold text-on-surface">{{ searchQuery }}</span>」找到 {{ sortedProducts.length }} 件商品
+          </p>
+          <Button variant="ghost" size="sm" class="h-8 gap-1 text-on-surface-variant hover:text-primary" @click="clearSearch">
+            <X class="size-4" />
+            清除搜尋
+          </Button>
         </div>
 
         <div v-if="isLoading" class="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
@@ -107,13 +145,18 @@ watch(
             class="group flex flex-row overflow-hidden rounded-xl border border-outline-variant/30 bg-surface-container-lowest shadow-sm transition-all hover:-translate-y-0.5 hover:border-primary/40 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary lg:flex-col"
             :aria-label="`查看 ${product.name}`"
           >
-            <div class="h-40 w-40 shrink-0 overflow-hidden bg-surface-container-low sm:h-44 sm:w-44 lg:h-auto lg:w-full lg:aspect-[20/17]">
-              <img :alt="product.name" class="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.03]" :src="product.image"/>
+            <div class="relative h-40 w-40 shrink-0 overflow-hidden bg-surface-container-low sm:h-44 sm:w-44 lg:h-auto lg:w-full lg:aspect-[20/17]">
+              <img :alt="product.name" class="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.03]" :class="{ 'opacity-50 grayscale': !product.inStock }" :src="product.image"/>
+              <div v-if="!product.inStock" class="absolute inset-0 flex items-center justify-center">
+                <span class="rounded-full bg-on-surface/75 px-3 py-1 text-xs font-bold text-surface">已售完</span>
+              </div>
             </div>
             <div class="flex flex-1 flex-col px-4 pb-4 pt-3.5">
               <div class="mb-2.5 flex min-h-5 items-center justify-between gap-3">
                 <p class="text-xs font-semibold text-on-surface-variant">{{ product.categoryName }}</p>
-                <span v-if="product.tag" class="rounded-full bg-primary/10 px-2 py-0.5 text-[11px] font-bold text-primary">{{ product.tag }}</span>
+                <span v-if="!product.inStock" class="rounded-full bg-outline-variant/20 px-2 py-0.5 text-[11px] font-bold text-on-surface-variant">缺貨</span>
+                <span v-else-if="product.stock <= 5" class="rounded-full bg-error/10 px-2 py-0.5 text-[11px] font-bold text-error">僅剩 {{ product.stock }}</span>
+                <span v-else-if="product.tag" class="rounded-full bg-primary/10 px-2 py-0.5 text-[11px] font-bold text-primary">{{ product.tag }}</span>
               </div>
 
               <h4 class="line-clamp-2 text-lg font-extrabold leading-[1.35] text-on-surface transition-colors group-hover:text-primary">{{ product.name }}</h4>
@@ -133,10 +176,14 @@ watch(
         </div>
 
         <div v-if="!isLoading && !errorMessage && paginatedProducts.length === 0" class="rounded-xl bg-surface-container-lowest p-10 text-center text-on-surface-variant">
-          這個分類目前沒有可購買商品。
+          <template v-if="searchQuery">
+            找不到「{{ searchQuery }}」相符的商品。
+            <Button variant="link" class="ml-1 h-auto p-0 text-primary" @click="clearSearch">清除搜尋</Button>
+          </template>
+          <template v-else>這個分類目前沒有可購買商品。</template>
         </div>
 
-        <div class="mt-8 flex justify-center">
+        <div v-if="sortedProducts.length > itemsPerPage" class="mt-8 flex justify-center">
             <Pagination v-slot="{ page }" v-model:page="currentPage" :total="sortedProducts.length" :items-per-page="itemsPerPage" :sibling-count="1" show-edges>
               
               <PaginationContent v-slot="{ items }" class="flex items-center gap-1">

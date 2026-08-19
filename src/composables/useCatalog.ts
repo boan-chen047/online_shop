@@ -40,6 +40,9 @@ export interface CatalogProduct {
   images: CatalogImage[]
   specs: Record<string, string>
   specList: CatalogSpec[]
+  // 可售數量 = quantity - reserved_quantity；沒有庫存資料時視為 0（缺貨）
+  stock: number
+  inStock: boolean
 }
 
 type RawCategory = {
@@ -75,6 +78,15 @@ type RawProduct = {
     label: string
     value: string
     sort_order: number | null
+  }> | null
+  inventory: {
+    product_id?: string
+    quantity: number | null
+    reserved_quantity: number | null
+  } | Array<{
+    product_id?: string
+    quantity: number | null
+    reserved_quantity: number | null
   }> | null
 }
 
@@ -120,6 +132,11 @@ function normalizeProduct(row: RawProduct): CatalogProduct {
     }))
     .sort((a, b) => a.sortOrder - b.sortOrder)
 
+  const inventory = firstRelation(row.inventory)
+  const stock = inventory
+    ? Math.max(0, (inventory.quantity ?? 0) - (inventory.reserved_quantity ?? 0))
+    : 0
+
   return {
     id: row.id,
     slug: row.slug,
@@ -137,6 +154,8 @@ function normalizeProduct(row: RawProduct): CatalogProduct {
     images,
     specs: Object.fromEntries(specList.map((spec) => [spec.label, spec.value])),
     specList,
+    stock,
+    inStock: stock > 0,
   }
 }
 
@@ -185,7 +204,11 @@ async function fetchProducts() {
     return
   }
 
-  const [{ data: imageRows, error: imageError }, { data: specRows, error: specError }] = await Promise.all([
+  const [
+    { data: imageRows, error: imageError },
+    { data: specRows, error: specError },
+    { data: inventoryRows, error: inventoryError },
+  ] = await Promise.all([
     supabase
       .from('product_images')
       .select('id, product_id, image_url, alt, sort_order, is_primary')
@@ -193,6 +216,10 @@ async function fetchProducts() {
     supabase
       .from('product_specs')
       .select('id, product_id, label, value, sort_order')
+      .in('product_id', productIds),
+    supabase
+      .from('inventory')
+      .select('product_id, quantity, reserved_quantity')
       .in('product_id', productIds),
   ])
 
@@ -203,6 +230,15 @@ async function fetchProducts() {
   if (specError) {
     console.warn('Product specs could not be loaded.', specError)
   }
+
+  if (inventoryError) {
+    console.warn('Product inventory could not be loaded.', inventoryError)
+  }
+
+  const inventoryMap = new Map(
+    (inventoryError ? [] : (inventoryRows ?? []))
+      .map((row) => [row.product_id as string, row]),
+  )
 
   products.value = productRows.map((product) => {
     const category = categoryMap.get(product.category_id)
@@ -223,6 +259,7 @@ async function fetchProducts() {
         .filter((image) => image.product_id === product.id),
       product_specs: (productSpecs as NonNullable<RawProduct['product_specs']>)
         .filter((spec) => spec.product_id === product.id),
+      inventory: inventoryMap.get(product.id) ?? null,
     })
   })
 }
@@ -287,7 +324,12 @@ export async function fetchProductByIdentifier(identifier: string) {
   }
 
   const productRow = data as unknown as RawProduct
-  const [{ data: categoryRow, error: categoryError }, { data: imageRows, error: imageError }, { data: specRows, error: specError }] = await Promise.all([
+  const [
+    { data: categoryRow, error: categoryError },
+    { data: imageRows, error: imageError },
+    { data: specRows, error: specError },
+    { data: inventoryRow, error: inventoryError },
+  ] = await Promise.all([
     supabase
       .from('categories')
       .select('id, slug, name, sort_order')
@@ -301,6 +343,11 @@ export async function fetchProductByIdentifier(identifier: string) {
       .from('product_specs')
       .select('id, product_id, label, value, sort_order')
       .eq('product_id', productRow.id),
+    supabase
+      .from('inventory')
+      .select('product_id, quantity, reserved_quantity')
+      .eq('product_id', productRow.id)
+      .maybeSingle(),
   ])
 
   if (categoryError) {
@@ -315,11 +362,16 @@ export async function fetchProductByIdentifier(identifier: string) {
     console.warn('Product specs could not be loaded.', specError)
   }
 
+  if (inventoryError) {
+    console.warn('Product inventory could not be loaded.', inventoryError)
+  }
+
   return normalizeProduct({
     ...productRow,
     categories: categoryRow as RawCategory | null,
     product_images: (imageError ? [] : imageRows ?? []) as RawProduct['product_images'],
     product_specs: (specError ? [] : specRows ?? []) as RawProduct['product_specs'],
+    inventory: (inventoryError ? null : inventoryRow) as RawProduct['inventory'],
   })
 }
 

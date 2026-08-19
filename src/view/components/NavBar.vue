@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { useRoute, RouterLink } from 'vue-router'
+import { ref, watch } from 'vue'
+import { useRoute, useRouter, RouterLink } from 'vue-router'
 import { Input } from '@/components/ui/input'
 import { cn } from '@/lib/utils'
 import { useAuth } from '@/composables/useAuth'
@@ -13,10 +14,10 @@ import {
   NavigationMenuTrigger,
 } from '@/components/ui/navigation-menu'
 
-import { 
+import {
   Search, ShoppingCart, User,
   LayoutGrid, Cookie, Coffee, Laptop, Watch,
-  Home as HomeIcon, Grid, ShoppingBag
+  Home as HomeIcon, Grid, ShoppingBag, ClipboardList
 } from 'lucide-vue-next'
 
 // 商品類別定義
@@ -30,8 +31,27 @@ const products = [
 ]
 
 const route = useRoute()
+const router = useRouter()
 const { itemCount } = useCart()
-const { currentUser, userProfile, userInitials } = useAuth()
+const { currentUser, userProfile, userInitials, isAdmin } = useAuth()
+const searchInput = ref('')
+
+watch(
+  () => route.query.search,
+  (search) => {
+    searchInput.value = typeof search === 'string' ? search : ''
+  },
+  { immediate: true },
+)
+
+function submitSearch() {
+  const search = searchInput.value.trim()
+
+  void router.push({
+    name: 'Products',
+    query: search ? { search } : {},
+  })
+}
 
 /**
  * 導覽列動態樣式邏輯
@@ -107,20 +127,28 @@ const navItemClass = (path: string) => {
         </div>
       </div>
       
-      <div class="flex-1 max-w-xl mx-8 hidden lg:block">
-        <div class="relative flex items-center w-full">
+      <form class="mx-8 hidden max-w-xl flex-1 lg:block" role="search" @submit.prevent="submitSearch">
+        <div class="relative flex w-full items-center">
           <Input 
+            v-model="searchInput"
             type="text" 
-            placeholder="Search curated collections..." 
+            placeholder="搜尋商品、分類或關鍵字"
+            aria-label="搜尋商品"
+            @keydown.enter.prevent="submitSearch"
             class="w-full bg-surface-container-highest dark:bg-muted border-none focus-visible:ring-1 focus-visible:ring-primary rounded-full pl-6 pr-10 py-5 text-sm"
           />
-          <span class="absolute end-0 inset-y-0 flex items-center justify-center px-4">
+          <button type="submit" class="absolute inset-y-0 end-0 flex items-center justify-center px-4 text-muted-foreground transition-colors hover:text-primary focus-visible:outline-none focus-visible:text-primary" aria-label="開始搜尋">
             <Search class="size-4 text-muted-foreground" />
-          </span>
+          </button>
         </div>
-      </div>
+      </form>
       
       <div class="hidden md:flex items-center gap-1">
+        <RouterLink v-if="currentUser" to="/admin/orders" :class="navItemClass('/admin')" class="gap-2">
+          <ClipboardList class="size-5" />
+          <span class="font-bold text-xs">{{ isAdmin ? '訂單管理' : '我的訂單' }}</span>
+        </RouterLink>
+
         <RouterLink to="/cart" :class="navItemClass('/cart')" class="gap-2">
           <span class="relative">
             <ShoppingCart class="size-5" />

@@ -2,8 +2,8 @@
 -- Safe to rerun in a test database. It upserts catalog data by slug and refreshes
 -- images/specs/inventory for the seeded products.
 --
--- The final section promotes the provided test account to admin_level_2 by email.
--- Change the email if you want a different account to be the level 2 administrator.
+-- The final section promotes the provided test account to admin by email.
+-- Change the email if you want a different account to be the administrator.
 
 begin;
 
@@ -182,7 +182,7 @@ set
 
 update public.user_profile
 set
-  role = 'admin_level_2',
+  role = 'admin',
   account_status = 'active',
   deleted_at = null,
   updated_at = now()

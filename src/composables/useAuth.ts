@@ -3,6 +3,7 @@ import type { User } from '@supabase/supabase-js'
 import { isSupabaseConfigured, supabase } from '@/lib/supabase'
 
 const currentUser = ref<User | null>(null)
+const currentRole = ref<string | null>(null)
 const isAuthReady = ref(false)
 const isSigningIn = ref(false)
 const authError = ref('')
@@ -11,6 +12,7 @@ let isListening = false
 
 async function syncUserProfile(user: User | null) {
   if (!user || !isSupabaseConfigured) {
+    currentRole.value = null
     return
   }
 
@@ -56,6 +58,14 @@ async function syncUserProfile(user: User | null) {
   if (error) {
     authError.value = getAuthErrorMessage(error)
   }
+
+  const { data: roleRow } = await supabase
+    .from('user_profile')
+    .select('role')
+    .eq('id', user.id)
+    .maybeSingle()
+
+  currentRole.value = (roleRow?.role as string | undefined) ?? null
 }
 
 function startAuthListener() {
@@ -223,6 +233,8 @@ const userInitials = computed(() =>
     .toUpperCase(),
 )
 
+const isAdmin = computed(() => currentRole.value === 'admin')
+
 export function useAuth() {
   startAuthListener()
 
@@ -234,6 +246,7 @@ export function useAuth() {
     authNotice,
     userProfile,
     userInitials,
+    isAdmin,
     signInWithEmail,
     signInWithGoogle,
     signUpWithEmail,
