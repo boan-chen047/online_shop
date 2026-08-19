@@ -412,3 +412,10 @@ enabled = true
 # declarative_schema_path = "./schemas"
 # JSON string passed through to pg-delta SQL formatting.
 # format_options = "{\"keywordCase\":\"upper\",\"indent\":2,\"maxWidth\":80,\"commaStyle\":\"trailing\"}"
+
+[functions.ecpay-create]
+verify_jwt = true
+
+[functions.ecpay-callback]
+# 綠界 server-to-server 通知不帶使用者 JWT，必須關閉驗證
+verify_jwt = false

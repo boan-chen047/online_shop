@@ -55,6 +55,11 @@ const routes = [
     path: '/admin/products',
     name: 'AdminProducts',
     component: () => import('../view/components/AdminProducts.vue')
+  },
+  {
+    path: '/checkout/result',
+    name: 'CheckoutResult',
+    component: () => import('../view/components/CheckoutResult.vue')
   }
 ]
 // 路由配置表

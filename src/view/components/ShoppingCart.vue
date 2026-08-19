@@ -8,6 +8,8 @@ import { Trash2, Minus, Plus, CheckCircle2 } from 'lucide-vue-next'
 import { useCart } from '@/composables/useCart'
 import { cn } from '@/lib/utils'
 import { formatPrice } from '@/composables/useCatalog'
+import { taiwanCities, taiwanDistricts } from '@/lib/taiwanDistricts'
+import { startEcpayPayment } from '@/lib/ecpay'
 // 引入依賴
 
 // 購物車資料
@@ -66,10 +68,20 @@ function lineClass(n: number) {
 
 const recipientName = ref('')
 const recipientPhone = ref('')
-const shippingAddress = ref('')
+const shippingCity = ref('')
+const shippingDistrict = ref('')
+const shippingDetail = ref('')
 const note = ref('')
 const formError = ref('')
 const lastOrderId = ref('')
+
+const cities = taiwanCities
+const districts = computed(() => (shippingCity.value ? taiwanDistricts[shippingCity.value] ?? [] : []))
+
+// 換縣市時清掉已選的鄉鎮區，避免殘留不屬於新縣市的選項
+watch(shippingCity, () => {
+  shippingDistrict.value = ''
+})
 
 function handleProceedToInfo() {
   if (!selectedCartItems.value.length) {
@@ -87,32 +99,66 @@ function handleBackToCart() {
 async function handleSubmitOrder() {
   formError.value = ''
 
-  if (!recipientName.value.trim() || !recipientPhone.value.trim() || !shippingAddress.value.trim()) {
-    formError.value = '請填寫收件人姓名、聯絡電話與收件地址。'
+  const name = recipientName.value.trim()
+  const phoneRaw = recipientPhone.value.trim()
+  const detail = shippingDetail.value.trim()
+
+  if (!name || !phoneRaw || !shippingCity.value || !shippingDistrict.value || !detail) {
+    formError.value = '請填寫收件人姓名、聯絡電話、縣市、鄉鎮區與詳細地址。'
     return
   }
+
+  if (name.length < 2) {
+    formError.value = '收件人姓名至少需要 2 個字。'
+    return
+  }
+
+  // 收件人姓名限純文字：中文、英文字母、空白與間隔號，不可含數字或特殊符號
+  if (!/^[一-鿿 a-zA-Z·‧・]+$/.test(name)) {
+    formError.value = '收件人姓名只能是中文或英文，不可包含數字或特殊符號。'
+    return
+  }
+
+  // 台灣電話：去掉空白與連字號後，須為 0 開頭的 9~10 碼數字
+  // （手機 09xxxxxxxx 共 10 碼；市話 0x-xxxxxxx(x) 共 9~10 碼）
+  const phoneDigits = phoneRaw.replace(/[\s-]/g, '')
+  if (!/^0\d{8,9}$/.test(phoneDigits)) {
+    formError.value = '請輸入正確的電話號碼（例如 0912345678 或 02-12345678）。'
+    return
+  }
+
+  if (detail.length < 4) {
+    formError.value = '詳細地址過短，請填寫街道、門牌等資訊。'
+    return
+  }
+
+  const address = `${shippingCity.value}${shippingDistrict.value}${detail}`
 
   isCheckingOut.value = true
 
   try {
+    // 1. 先在資料庫建立未付款訂單（金額伺服器端計算）
     const orderId = await checkoutSelectedCart({
-      recipientName: recipientName.value.trim(),
-      recipientPhone: recipientPhone.value.trim(),
-      shippingAddress: shippingAddress.value.trim(),
+      recipientName: name,
+      recipientPhone: phoneRaw,
+      shippingAddress: address,
       note: note.value.trim(),
     })
     lastOrderId.value = orderId
-    step.value = 'done'
-  } catch {
-    formError.value = cartError.value || '建立訂單失敗。'
-  } finally {
+    // 2. 取得綠界付款參數並導向綠界收銀台；成功會離開本頁，付款結果由結果頁確認
+    await startEcpayPayment(orderId)
+  } catch (error) {
+    formError.value =
+      cartError.value ||
+      (error instanceof Error ? error.message : '') ||
+      '建立訂單或前往付款失敗，請稍後再試。'
     isCheckingOut.value = false
   }
 }
 
 const ctaLabel = computed(() => {
   if (step.value === 'cart') return '前往結帳'
-  return isCheckingOut.value ? '建立訂單中' : '確認送出訂單'
+  return isCheckingOut.value ? '前往付款中' : '前往綠界付款'
 })
 
 const ctaDisabled = computed(() => {
@@ -259,13 +305,27 @@ onMounted(() => {
                 <Input v-model="recipientPhone" type="tel" placeholder="0912-345-678" />
               </div>
               <div>
-                <label class="mb-1.5 block text-sm font-bold text-on-surface-variant">收件地址</label>
-                <textarea
-                  v-model="shippingAddress"
-                  rows="2"
-                  placeholder="縣市、鄉鎮區、街道門牌"
-                  class="w-full resize-none rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-xs outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50"
-                ></textarea>
+                <label class="mb-1.5 block text-sm font-bold text-on-surface-variant">收件地址（限台灣本島與離島）</label>
+                <div class="grid grid-cols-2 gap-3">
+                  <select
+                    v-model="shippingCity"
+                    class="h-9 w-full rounded-md border border-input bg-transparent px-3 text-sm shadow-xs outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50"
+                    :class="shippingCity ? 'text-on-surface' : 'text-muted-foreground'"
+                  >
+                    <option value="" disabled>縣市</option>
+                    <option v-for="city in cities" :key="city" :value="city">{{ city }}</option>
+                  </select>
+                  <select
+                    v-model="shippingDistrict"
+                    :disabled="!shippingCity"
+                    class="h-9 w-full rounded-md border border-input bg-transparent px-3 text-sm shadow-xs outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50"
+                    :class="shippingDistrict ? 'text-on-surface' : 'text-muted-foreground'"
+                  >
+                    <option value="" disabled>{{ shippingCity ? '鄉鎮區' : '請先選縣市' }}</option>
+                    <option v-for="district in districts" :key="district" :value="district">{{ district }}</option>
+                  </select>
+                </div>
+                <Input v-model="shippingDetail" class="mt-3" placeholder="街道、門牌號碼（例如：忠孝東路四段 1 號 5 樓）" />
               </div>
               <div>
                 <label class="mb-1.5 block text-sm font-bold text-on-surface-variant">備註（選填）</label>
