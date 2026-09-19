@@ -29,11 +29,20 @@ Deno.serve(async (req) => {
         Deno.env.get('SUPABASE_URL')!,
         Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
       )
-      await admin
-        .from('orders')
-        .update({ payment_status: 'paid', paid_at: new Date().toISOString() })
-        .eq('id', params.CustomField1)
-        .eq('payment_status', 'unpaid')
+      // 交由 mark_order_paid 於單一交易內：確認幂等、把預留庫存結清成實際售出，
+      // 並處理「逾時取消後才收到的遲到付款」（有貨復活、沒貨標記缺貨待退款）。
+      const { data: result, error: rpcError } = await admin.rpc('mark_order_paid', {
+        p_order_id: params.CustomField1,
+      })
+
+      if (rpcError) {
+        // 結清失敗（例如短暫的資料庫錯誤）：回非 1 讓綠界稍後重送，交易紀錄不遺失。
+        return new Response(`0|${rpcError.message}`, { status: 200 })
+      }
+
+      // result 為 'paid_out_of_stock' 時代表已收款但缺貨，需後續退款；此處仍回 1|OK，
+      // 避免綠界重送，缺貨退款由訂單狀態 out_of_stock 走人工／後續自動流程處理。
+      void result
     }
 
     // 一定要回覆 1|OK，否則綠界會持續重送通知

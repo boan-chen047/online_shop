@@ -40,15 +40,19 @@ const orderStatusOptions = [
   { value: 'received', label: '已完成' },
 ]
 
-const orderStatusLabel: Record<string, string> = Object.fromEntries(
-  orderStatusOptions.map((option) => [option.value, option.label]),
-)
+// 顯示用標籤：除了管理員可手動切換的三種，另含系統自動設定的取消／缺貨狀態。
+const orderStatusLabel: Record<string, string> = {
+  ...Object.fromEntries(orderStatusOptions.map((option) => [option.value, option.label])),
+  cancelled: '已取消',
+  out_of_stock: '缺貨待退款',
+}
 
 const paymentStatusLabel: Record<string, string> = {
   unpaid: '未付款',
   paid: '已付款',
   failed: '付款失敗',
   refunded: '已退款',
+  expired: '逾時未付',
 }
 
 async function loadOrders() {
