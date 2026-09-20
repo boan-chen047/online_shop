@@ -89,6 +89,10 @@ Deno.serve(async (req) => {
       ChoosePayment: 'ALL',
       EncryptType: '1',
       CustomField1: String(order.id),
+      // 讓綠界端的繳費期限對齊系統的三天逾時：
+      // 信用卡為即時付款、沒有殘留待付款；ATM 虛擬帳號以 ExpireDate（天）控制繳費期限。
+      // 超商代碼繳費的 StoreExpireDate 單位與上限依付款方式而異，待接超商時再對照綠界文件補上。
+      ExpireDate: '3',
     }
 
     if (typeof backOrigin === 'string' && backOrigin.startsWith('http')) {

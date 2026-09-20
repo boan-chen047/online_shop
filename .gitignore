@@ -23,3 +23,7 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# 工具產生的雜訊（Codex 工作流程紀錄、corepack 快取）
+.codex-workflow
+.corepack

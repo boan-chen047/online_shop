@@ -50,9 +50,19 @@ const isCartLoading = ref(false)
 const cartError = ref('')
 let hasLoadedCart = false
 
+// 後端 create_order_from_cart 缺貨時會拋出 'OUT_OF_STOCK:商品名'，轉成可讀訊息。
+// （完整的缺貨彈窗 UI 之後另做，這裡先確保錯誤訊息不會直接露出內部前綴。）
+function humanizeCartError(message: string) {
+  const match = message.match(/OUT_OF_STOCK:(.+)/)
+  if (match) {
+    return `商品「${match[1].trim()}」庫存不足，請調整數量或先移除後再結帳。`
+  }
+  return message
+}
+
 function getSupabaseErrorMessage(error: unknown, fallback: string) {
   if (error instanceof Error) {
-    return error.message
+    return humanizeCartError(error.message)
   }
 
   if (error && typeof error === 'object') {
@@ -61,7 +71,7 @@ function getSupabaseErrorMessage(error: unknown, fallback: string) {
       .filter((part): part is string => typeof part === 'string' && part.length > 0)
 
     if (parts.length) {
-      return parts.join('\n')
+      return humanizeCartError(parts.join('\n'))
     }
   }
 
