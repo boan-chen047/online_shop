@@ -17,7 +17,7 @@ import {
 import {
   Search, ShoppingCart, User,
   LayoutGrid, Cookie, Coffee, Laptop, Watch,
-  Home as HomeIcon, Grid, ShoppingBag, ClipboardList, Package
+  Home as HomeIcon, Grid, ShoppingBag, ClipboardList, LayoutDashboard
 } from 'lucide-vue-next'
 
 // 商品類別定義
@@ -144,14 +144,14 @@ const navItemClass = (path: string) => {
       </form>
       
       <div class="hidden md:flex items-center gap-1">
-        <RouterLink v-if="isAdmin" to="/admin/products" :class="navItemClass('/admin/products')" class="gap-2">
-          <Package class="size-5" />
-          <span class="font-bold text-xs">商品管理</span>
+        <RouterLink v-if="isAdmin" to="/admin" :class="navItemClass('/admin')" class="gap-2">
+          <LayoutDashboard class="size-5" />
+          <span class="font-bold text-xs">後台管理</span>
         </RouterLink>
 
-        <RouterLink v-if="currentUser" to="/admin/orders" :class="navItemClass('/admin/orders')" class="gap-2">
+        <RouterLink v-else-if="currentUser" to="/orders" :class="navItemClass('/orders')" class="gap-2">
           <ClipboardList class="size-5" />
-          <span class="font-bold text-xs">{{ isAdmin ? '訂單管理' : '我的訂單' }}</span>
+          <span class="font-bold text-xs">我的訂單</span>
         </RouterLink>
 
         <RouterLink v-if="!isAdmin" to="/cart" :class="navItemClass('/cart')" class="gap-2">
@@ -186,9 +186,9 @@ const navItemClass = (path: string) => {
       <Grid class="size-6" />
       <span class="text-[10px] font-bold">Browse</span>
     </RouterLink>
-    <RouterLink v-if="isAdmin" to="/admin/products" class="flex flex-col items-center gap-1 text-on-surface-variant hover:text-primary transition-colors">
-      <Package class="size-6" />
-      <span class="text-[10px] font-bold">商品</span>
+    <RouterLink v-if="isAdmin" to="/admin" class="flex flex-col items-center gap-1 text-on-surface-variant hover:text-primary transition-colors">
+      <LayoutDashboard class="size-6" />
+      <span class="text-[10px] font-bold">後台</span>
     </RouterLink>
     <RouterLink v-else to="/cart" class="flex flex-col items-center gap-1 text-on-surface-variant hover:text-primary transition-colors">
       <span class="relative">

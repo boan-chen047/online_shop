@@ -52,19 +52,36 @@ const routes = [
     component: () => import('../view/components/NewsDetail.vue')
   },
   {
-    // 注意：AdminOrders.vue 是顧客「我的訂單」與管理員「訂單管理」共用的頁面
-    //（元件內以 isAdmin 切換，顧客只需登入、RLS 只回自己的訂單），
-    // 因此這條只需登入即可，不能要求 admin，否則顧客看不到自己的訂單。
-    path: '/admin/orders',
-    name: 'AdminOrders',
+    // 顧客「我的訂單」：與管理員訂單管理共用 AdminOrders.vue（元件內以 isAdmin 切換，
+    // RLS 只回自己的訂單），只需登入即可。管理員版在 /admin/orders（後台外殼內）。
+    path: '/orders',
+    name: 'MyOrders',
     component: () => import('../view/components/AdminOrders.vue'),
     meta: { requiresAuth: true }
   },
   {
-    path: '/admin/products',
-    name: 'AdminProducts',
-    component: () => import('../view/components/AdminProducts.vue'),
-    meta: { requiresAdmin: true }
+    // 後台管理外殼：商品／訂單／網站設定，全區要求管理員權限
+    path: '/admin',
+    component: () => import('../view/components/AdminLayout.vue'),
+    meta: { requiresAdmin: true },
+    children: [
+      { path: '', redirect: { name: 'AdminProducts' } },
+      {
+        path: 'products',
+        name: 'AdminProducts',
+        component: () => import('../view/components/AdminProducts.vue'),
+      },
+      {
+        path: 'orders',
+        name: 'AdminOrders',
+        component: () => import('../view/components/AdminOrders.vue'),
+      },
+      {
+        path: 'settings',
+        name: 'AdminSettings',
+        component: () => import('../view/components/AdminSettings.vue'),
+      },
+    ],
   },
   {
     path: '/checkout/result',

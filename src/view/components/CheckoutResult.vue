@@ -74,7 +74,7 @@ onBeforeUnmount(() => {
         <p class="font-mono text-sm">{{ orderId }}</p>
         <div class="mt-8 flex gap-3">
           <Button as-child class="primary-gradient rounded-xl px-6 font-bold text-on-primary">
-            <RouterLink to="/admin/orders">查看我的訂單</RouterLink>
+            <RouterLink to="/orders">查看我的訂單</RouterLink>
           </Button>
           <Button as-child variant="outline" class="rounded-xl px-6 font-bold">
             <RouterLink to="/products">繼續購物</RouterLink>
@@ -90,7 +90,7 @@ onBeforeUnmount(() => {
         </p>
         <div class="mt-8 flex gap-3">
           <Button as-child class="primary-gradient rounded-xl px-6 font-bold text-on-primary">
-            <RouterLink to="/admin/orders">前往我的訂單</RouterLink>
+            <RouterLink to="/orders">前往我的訂單</RouterLink>
           </Button>
         </div>
       </template>
@@ -101,7 +101,7 @@ onBeforeUnmount(() => {
         <p class="mt-2 text-base text-on-surface-variant">無法確認付款結果，請至「我的訂單」查看，或聯絡客服。</p>
         <div class="mt-8 flex gap-3">
           <Button as-child class="primary-gradient rounded-xl px-6 font-bold text-on-primary">
-            <RouterLink to="/admin/orders">前往我的訂單</RouterLink>
+            <RouterLink to="/orders">前往我的訂單</RouterLink>
           </Button>
           <Button as-child variant="outline" class="rounded-xl px-6 font-bold">
             <RouterLink to="/">回首頁</RouterLink>
