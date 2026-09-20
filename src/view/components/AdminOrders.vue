@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button'
 import { useAuth } from '@/composables/useAuth'
 import { formatPrice } from '@/composables/useCatalog'
 import { supabase } from '@/lib/supabase'
+import { startEcpayPayment } from '@/lib/ecpay'
 
 interface OrderItem {
   id: string
@@ -33,6 +34,7 @@ const orders = ref<Order[]>([])
 const isLoading = ref(false)
 const loadError = ref('')
 const updatingOrderId = ref('')
+const payingOrderId = ref('')
 
 const orderStatusOptions = [
   { value: 'created', label: '已建立' },
@@ -93,6 +95,20 @@ async function updateOrderStatus(orderId: string, nextStatus: string) {
   }
 
   updatingOrderId.value = ''
+}
+
+// 顧客對既有的未付款訂單重新前往綠界付款（沿用結帳時的 startEcpayPayment，
+// 會呼叫 ecpay-create 取得參數並導向綠界；成功會離開本頁，因此正常不會 resolve）。
+async function payOrder(orderId: string) {
+  payingOrderId.value = orderId
+  loadError.value = ''
+
+  try {
+    await startEcpayPayment(orderId)
+  } catch (error) {
+    loadError.value = error instanceof Error ? error.message : '前往付款失敗，請稍後再試。'
+    payingOrderId.value = ''
+  }
 }
 
 watch(
@@ -199,6 +215,17 @@ watch(
                 <span class="shrink-0 text-sm font-semibold text-on-surface-variant">備註</span>
                 <span class="text-on-surface">{{ order.note }}</span>
               </div>
+            </div>
+
+            <!-- 未付款：顧客可繼續前往綠界付款 -->
+            <div v-if="!isAdmin && order.payment_status === 'unpaid'" class="mt-4 flex justify-end">
+              <Button
+                class="primary-gradient rounded-xl font-bold text-on-primary"
+                :disabled="payingOrderId === order.id"
+                @click="payOrder(order.id)"
+              >
+                {{ payingOrderId === order.id ? '前往付款中…' : '去付款' }}
+              </Button>
             </div>
           </section>
         </div>
