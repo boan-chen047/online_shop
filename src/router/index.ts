@@ -52,10 +52,13 @@ const routes = [
     component: () => import('../view/components/NewsDetail.vue')
   },
   {
+    // 注意：AdminOrders.vue 是顧客「我的訂單」與管理員「訂單管理」共用的頁面
+    //（元件內以 isAdmin 切換，顧客只需登入、RLS 只回自己的訂單），
+    // 因此這條只需登入即可，不能要求 admin，否則顧客看不到自己的訂單。
     path: '/admin/orders',
     name: 'AdminOrders',
     component: () => import('../view/components/AdminOrders.vue'),
-    meta: { requiresAdmin: true }
+    meta: { requiresAuth: true }
   },
   {
     path: '/admin/products',
