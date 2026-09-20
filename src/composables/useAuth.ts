@@ -1,4 +1,4 @@
-import { computed, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
 import type { User } from '@supabase/supabase-js'
 import { isSupabaseConfigured, supabase } from '@/lib/supabase'
 
@@ -74,11 +74,13 @@ function startAuthListener() {
   }
 
   isListening = true
-  supabase.auth.getSession().then(({ data, error }) => {
+  // 初次載入：先把使用者角色（syncUserProfile）抓齊，再標記 isAuthReady，
+  // 這樣路由守衛在 isAuthReady 為 true 時就能拿到正確的 isAdmin，不會有角色未載入的競態。
+  supabase.auth.getSession().then(async ({ data, error }) => {
     currentUser.value = data.session?.user ?? null
-    isAuthReady.value = true
     authError.value = error ? getAuthErrorMessage(error) : ''
-    void syncUserProfile(data.session?.user ?? null)
+    await syncUserProfile(data.session?.user ?? null)
+    isAuthReady.value = true
   })
 
   supabase.auth.onAuthStateChange((_event, session) => {
@@ -234,6 +236,24 @@ const userInitials = computed(() =>
 )
 
 const isAdmin = computed(() => currentRole.value === 'admin')
+
+// 供路由守衛使用：確保初次的登入狀態（含角色）已解析完成才回傳，避免守衛在載入前誤判。
+export function ensureAuthReady(): Promise<void> {
+  startAuthListener()
+
+  if (isAuthReady.value) {
+    return Promise.resolve()
+  }
+
+  return new Promise((resolve) => {
+    const stop = watch(isAuthReady, (ready) => {
+      if (ready) {
+        stop()
+        resolve()
+      }
+    })
+  })
+}
 
 export function useAuth() {
   startAuthListener()
