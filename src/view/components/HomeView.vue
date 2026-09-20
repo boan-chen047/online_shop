@@ -1,12 +1,18 @@
 <script setup lang="ts">
-import { computed, onMounted } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import CountdownTimer from './CountdownTimer.vue'
 import { Zap } from 'lucide-vue-next'
 import { formatPrice, useCatalog } from '@/composables/useCatalog'
+import { loadFlashSale } from '@/composables/useSiteSettings'
 
 const { products, loadCatalog } = useCatalog()
+
+// 讀不到設定時的 fallback（沿用原本寫死值，台灣時間）
+const DEFAULT_FLASH_SALE_END = '2026-12-31T23:59:59+08:00'
+const flashSaleStart = ref<string | Date | null>(null)
+const flashSaleEnd = ref<string | Date>(DEFAULT_FLASH_SALE_END)
 
 const flashSaleItems = computed(() => {
   const taggedProducts = products.value.filter((product) => product.tag || product.originalPrice)
@@ -15,8 +21,13 @@ const flashSaleItems = computed(() => {
   return source.slice(0, 5)
 })
 
-onMounted(() => {
+onMounted(async () => {
   void loadCatalog()
+  const window = await loadFlashSale()
+  if (window) {
+    flashSaleStart.value = window.start
+    flashSaleEnd.value = window.end
+  }
 })
 
 </script>
@@ -57,7 +68,7 @@ onMounted(() => {
             </div>
             <p class="text-sm text-outline">Premium pieces, limited time, exclusive prices.</p>
           </div>
-          <CountdownTimer targetDate="2026-12-31T23:59:59" />
+          <CountdownTimer :startDate="flashSaleStart" :targetDate="flashSaleEnd" />
         </div>
         <!-- sales最上方說明 -->
         <!-- sales商品展示 -->
