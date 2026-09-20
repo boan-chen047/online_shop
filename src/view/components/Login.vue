@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
-import { RouterLink } from 'vue-router'
+import { computed, ref, watch } from 'vue'
+import { RouterLink, useRoute, useRouter } from 'vue-router'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { useAuth } from '@/composables/useAuth'
@@ -19,6 +19,22 @@ const {
   signUpWithEmail,
   signOutUser,
 } = useAuth()
+
+const route = useRoute()
+const router = useRouter()
+
+// 若是被守衛導來登入頁（帶 redirect），登入成功後導回原本要去的頁面。
+// 僅接受站內路徑（以單一 / 開頭），避免被導向外部網址（open redirect）。
+watch(currentUser, (user) => {
+  if (!user) {
+    return
+  }
+
+  const redirect = route.query.redirect
+  if (typeof redirect === 'string' && redirect.startsWith('/') && !redirect.startsWith('//')) {
+    void router.replace(redirect)
+  }
+}, { immediate: true })
 
 const authMode = ref<'sign-in' | 'sign-up'>('sign-in')
 const email = ref('')
