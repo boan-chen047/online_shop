@@ -149,7 +149,7 @@ const navItemClass = (path: string) => {
           <span class="font-bold text-xs">後台管理</span>
         </RouterLink>
 
-        <RouterLink v-else-if="currentUser" to="/orders" :class="navItemClass('/orders')" class="gap-2">
+        <RouterLink v-if="currentUser" to="/orders" :class="navItemClass('/orders')" class="gap-2">
           <ClipboardList class="size-5" />
           <span class="font-bold text-xs">我的訂單</span>
         </RouterLink>

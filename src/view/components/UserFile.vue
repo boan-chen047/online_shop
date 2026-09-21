@@ -111,6 +111,7 @@ watch(
       <section class="space-y-6">
         <div class="flex items-center justify-between px-2 mb-2">
           <h2 class="font-bold text-2xl font-headline">歷史訂單</h2>
+          <RouterLink to="/orders" class="text-sm font-bold text-primary hover:underline">我的訂單（進行中）&rarr;</RouterLink>
         </div>
 
         <div v-if="ordersLoading" class="space-y-4">

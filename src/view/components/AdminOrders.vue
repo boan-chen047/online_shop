@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
 import { useNow } from '@vueuse/core'
-import { RouterLink } from 'vue-router'
+import { RouterLink, useRoute } from 'vue-router'
 import { Button } from '@/components/ui/button'
 import { useAuth } from '@/composables/useAuth'
 import { formatPrice } from '@/composables/useCatalog'
@@ -17,7 +17,11 @@ import {
   isInReviewPeriod,
 } from '@/composables/useOrders'
 
-const { isAuthReady, isAdmin, currentUser } = useAuth()
+const { isAuthReady, currentUser } = useAuth()
+const route = useRoute()
+
+// 視角由網址決定：/admin/orders = 管理全部；/orders = 看自己的（進行中）。
+const isManagementView = computed(() => route.name === 'AdminOrders')
 
 const now = useNow()
 const orders = ref<Order[]>([])
@@ -27,9 +31,9 @@ const updatingOrderId = ref('')
 const payingOrderId = ref('')
 const confirmingOrderId = ref('')
 
-// 管理員看全部；顧客的「我的訂單」只顯示進行中（已完結進歷史訂單頁）。
+// 管理視角看全部；個人「我的訂單」只顯示進行中（已完結進歷史訂單頁）。
 const displayedOrders = computed(() =>
-  isAdmin.value
+  isManagementView.value
     ? orders.value
     : orders.value.filter((order) => !isOrderCompleted(order, now.value.getTime())),
 )
@@ -106,7 +110,7 @@ watch(
 <template>
   <div class="text-on-surface antialiased font-body">
     <main class="mx-auto max-w-[94vw] px-5 pb-16">
-      <h1 class="mb-6 font-headline text-2xl font-black">{{ isAdmin ? '訂單管理' : '我的訂單' }}</h1>
+      <h1 class="mb-6 font-headline text-2xl font-black">{{ isManagementView ? '訂單管理' : '我的訂單' }}</h1>
 
       <div v-if="!isAuthReady" class="rounded-xl bg-surface-container-lowest p-8 text-center text-base text-on-surface-variant">
         載入中...
@@ -130,8 +134,8 @@ watch(
         </div>
 
         <div v-else-if="!displayedOrders.length" class="rounded-xl bg-surface-container-lowest p-8 text-center text-base text-on-surface-variant">
-          {{ isAdmin ? '目前還沒有任何訂單。' : '目前沒有進行中的訂單。' }}
-          <p v-if="!isAdmin" class="mt-1 text-sm">已完結的訂單可到「會員中心 → 歷史訂單」查看。</p>
+          {{ isManagementView ? '目前還沒有任何訂單。' : '目前沒有進行中的訂單。' }}
+          <p v-if="!isManagementView" class="mt-1 text-sm">已完結的訂單可到「會員中心 → 歷史訂單」查看。</p>
         </div>
 
         <div v-else class="space-y-5">
@@ -148,7 +152,7 @@ watch(
                 </span>
                 <!-- 管理員可改出貨狀態，顧客看友善狀態文字 -->
                 <select
-                  v-if="isAdmin"
+                  v-if="isManagementView"
                   :value="order.order_status"
                   :disabled="updatingOrderId === order.id"
                   class="rounded-md border border-input bg-transparent px-3 py-1.5 text-sm font-bold outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50"
@@ -198,7 +202,7 @@ watch(
             </div>
 
             <!-- 鑑賞期提示（顧客，received 且鑑賞期內） -->
-            <p v-if="!isAdmin && isInReviewPeriod(order, now.getTime())" class="mt-4 text-sm text-on-surface-variant">
+            <p v-if="!isManagementView && isInReviewPeriod(order, now.getTime())" class="mt-4 text-sm text-on-surface-variant">
               7 天鑑賞期至 {{ reviewDeadline(order) }}，期滿自動完結；也可提前確認完成。
             </p>
 
@@ -206,7 +210,7 @@ watch(
             <div class="mt-4 flex flex-wrap justify-end gap-3">
               <!-- 管理員測試：一鍵模擬物流送達簽收 → 進入鑑賞期 -->
               <Button
-                v-if="isAdmin && order.payment_status === 'paid' && ['created', 'shipping'].includes(order.order_status)"
+                v-if="isManagementView && order.payment_status === 'paid' && ['created', 'shipping'].includes(order.order_status)"
                 variant="outline"
                 class="rounded-xl font-bold"
                 :disabled="updatingOrderId === order.id"
@@ -217,7 +221,7 @@ watch(
 
               <!-- 顧客：未付款可去付款 -->
               <Button
-                v-if="!isAdmin && order.payment_status === 'unpaid'"
+                v-if="!isManagementView && order.payment_status === 'unpaid'"
                 class="primary-gradient rounded-xl font-bold text-on-primary"
                 :disabled="payingOrderId === order.id"
                 @click="payOrder(order.id)"
@@ -227,7 +231,7 @@ watch(
 
               <!-- 顧客：鑑賞期內可提前結束 → 完結 -->
               <Button
-                v-if="!isAdmin && isInReviewPeriod(order, now.getTime())"
+                v-if="!isManagementView && isInReviewPeriod(order, now.getTime())"
                 class="primary-gradient rounded-xl font-bold text-on-primary"
                 :disabled="confirmingOrderId === order.id"
                 @click="confirmComplete(order.id)"
