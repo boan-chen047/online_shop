@@ -12,7 +12,8 @@ const navItems = [
 
 function itemClass(name: string) {
   const base = 'flex items-center gap-2.5 whitespace-nowrap rounded-lg px-4 py-2.5 text-[15px] font-bold transition-colors'
-  return route.name === name
+  const current = route.name === 'AdminProductDetail' ? 'AdminProducts' : route.name
+  return current === name
     ? `${base} bg-primary/10 text-primary`
     : `${base} text-on-surface-variant hover:bg-surface-container-low hover:text-primary`
 }
