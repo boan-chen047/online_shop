@@ -174,8 +174,6 @@ onMounted(loadData)
     </div>
 
     <section v-else class="rounded-xl bg-surface-container-lowest p-5 shadow-sm md:p-6">
-      <p class="mb-4 font-mono text-xs text-on-surface-variant">{{ form.slug }}</p>
-
       <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
         <label class="flex flex-col gap-1.5 md:col-span-2">
           <span class="text-sm font-semibold text-on-surface-variant">商品名稱</span>

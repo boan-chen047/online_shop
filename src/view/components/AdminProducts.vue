@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
-import { RouterLink } from 'vue-router'
+import { RouterLink, useRouter } from 'vue-router'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { useAuth } from '@/composables/useAuth'
@@ -19,13 +19,61 @@ interface ProductCard {
 }
 
 const { isAuthReady, isAdmin } = useAuth()
+const router = useRouter()
 
 const products = ref<ProductCard[]>([])
 const activeIds = ref<Set<string>>(new Set())
 const isLoading = ref(false)
 const loadError = ref('')
+const isCreating = ref(false)
 const statusFilter = ref<'all' | 'active' | 'draft' | 'archived'>('all')
 const keyword = ref('')
+
+// 新增商品：建立一筆草稿商品（取第一個分類當預設），再導到詳情頁編輯。
+async function createProduct() {
+  isCreating.value = true
+  loadError.value = ''
+
+  const { data: categoryRows, error: categoryError } = await supabase
+    .from('categories')
+    .select('id')
+    .order('sort_order', { ascending: true })
+    .limit(1)
+  if (categoryError) {
+    loadError.value = categoryError.message
+    isCreating.value = false
+    return
+  }
+  const categoryId = categoryRows?.[0]?.id as string | undefined
+  if (!categoryId) {
+    loadError.value = '請先建立商品分類，才能新增商品。'
+    isCreating.value = false
+    return
+  }
+
+  const { data: created, error: createError } = await supabase
+    .from('products')
+    .insert({
+      name: '新商品',
+      slug: `new-product-${Date.now()}`,
+      category_id: categoryId,
+      price: 0,
+      status: 'draft',
+      sort_order: 0,
+    })
+    .select('id')
+    .single()
+  if (createError || !created) {
+    loadError.value = createError?.message ?? '新增商品失敗。'
+    isCreating.value = false
+    return
+  }
+
+  await supabase.from('inventory').upsert({ product_id: created.id, quantity: 0 }, { onConflict: 'product_id' })
+
+  isCreating.value = false
+  void router.push({ name: 'AdminProductDetail', params: { id: created.id } })
+}
 
 const statusOptions = [
   { value: 'active', label: '上架' },
@@ -96,14 +144,19 @@ onMounted(loadData)
     <main class="pb-16">
       <div class="mb-6 flex flex-wrap items-center justify-between gap-4">
         <h1 class="font-headline text-2xl font-black">商品管理</h1>
-        <div v-if="isAdmin && !isLoading && !loadError" class="flex items-center gap-2 text-sm">
-          <span class="text-on-surface-variant">狀態</span>
-          <select v-model="statusFilter" class="rounded-md border border-input bg-transparent px-3 py-1.5 font-bold outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50">
-            <option value="all">全部</option>
-            <option value="active">上架</option>
-            <option value="draft">草稿</option>
-            <option value="archived">封存</option>
-          </select>
+        <div v-if="isAdmin && !isLoading && !loadError" class="flex items-center gap-3 text-sm">
+          <div class="flex items-center gap-2">
+            <span class="text-on-surface-variant">狀態</span>
+            <select v-model="statusFilter" class="rounded-md border border-input bg-transparent px-3 py-1.5 font-bold outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50">
+              <option value="all">全部</option>
+              <option value="active">上架</option>
+              <option value="draft">草稿</option>
+              <option value="archived">封存</option>
+            </select>
+          </div>
+          <Button class="primary-gradient rounded-lg font-bold text-on-primary" :disabled="isCreating" @click="createProduct">
+            {{ isCreating ? '建立中…' : '＋ 新增商品' }}
+          </Button>
         </div>
       </div>
 
