@@ -13,13 +13,22 @@ const { products, loadCatalog } = useCatalog()
 const DEFAULT_FLASH_SALE_END = '2026-12-31T23:59:59+08:00'
 const flashSaleStart = ref<string | Date | null>(null)
 const flashSaleEnd = ref<string | Date>(DEFAULT_FLASH_SALE_END)
+const flashSaleProductIds = ref<string[]>([])
+const flashSaleDiscount = ref<number>(10) // 折數：8 = 八折；10 = 無折扣
 
 const flashSaleItems = computed(() => {
-  const taggedProducts = products.value.filter((product) => product.tag || product.originalPrice)
-  const source = taggedProducts.length >= 5 ? taggedProducts : products.value
-
-  return source.slice(0, 5)
+  const idOrder = new Map(flashSaleProductIds.value.map((id, index) => [id, index]))
+  return products.value
+    .filter((product) => idOrder.has(product.id))
+    .sort((a, b) => (idOrder.get(a.id) ?? 0) - (idOrder.get(b.id) ?? 0))
+    .slice(0, 5)
 })
+
+// 折後價：round(售價 × 折數 / 10)；無折扣時就是原售價
+function salePrice(price: number) {
+  return Math.round((price * flashSaleDiscount.value) / 10)
+}
+const hasDiscount = computed(() => flashSaleDiscount.value < 10)
 
 onMounted(async () => {
   void loadCatalog()
@@ -27,6 +36,8 @@ onMounted(async () => {
   if (window) {
     flashSaleStart.value = window.start
     flashSaleEnd.value = window.end
+    flashSaleProductIds.value = window.productIds
+    flashSaleDiscount.value = window.discount
   }
 })
 
@@ -58,7 +69,7 @@ onMounted(async () => {
       </section>
       <!-- 封面形象照 -->
       <!-- sales -->
-      <section class="mb-14 px-5">
+      <section v-if="flashSaleItems.length" class="mb-14 px-5">
         <!-- sales最上方說明 -->
         <div class="mb-7 flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
           <div>
@@ -72,7 +83,7 @@ onMounted(async () => {
         </div>
         <!-- sales最上方說明 -->
         <!-- sales商品展示 -->
-        <div v-if="flashSaleItems.length" class="grid grid-cols-1 gap-5 md:grid-cols-4">
+        <div class="grid grid-cols-1 gap-5 md:grid-cols-4">
           <!-- 左邊大圖 -->
           <Card class="md:col-span-2 md:row-span-2 bg-surface-container-lowest border-none overflow-hidden group hover:shadow-2xl transition-all duration-500 relative">
             <div class="h-full aspect-square md:aspect-auto">
@@ -82,8 +93,8 @@ onMounted(async () => {
               <p class="mb-2 text-sm font-bold text-primary">{{ flashSaleItems[0].tag }}</p>
               <h3 class="mb-2 text-xl font-bold">{{ flashSaleItems[0].name }}</h3>
               <div class="flex items-center gap-3">
-                <span class="text-xl font-black text-on-surface">{{ formatPrice(flashSaleItems[0].price) }}</span>
-                <span v-if="flashSaleItems[0].originalPrice" class="text-outline line-through text-sm">{{ formatPrice(flashSaleItems[0].originalPrice) }}</span>
+                <span class="text-xl font-black text-on-surface">{{ formatPrice(salePrice(flashSaleItems[0].price)) }}</span>
+                <span v-if="hasDiscount" class="text-outline line-through text-sm">{{ formatPrice(flashSaleItems[0].price) }}</span>
               </div>
               <Button as-child class="primary-gradient mt-5 w-full translate-y-4 font-bold text-white opacity-0 transition-all duration-300 group-hover:translate-y-0 group-hover:opacity-100">
                 <RouterLink :to="`/product/${flashSaleItems[0].slug}`">查看商品</RouterLink>
@@ -101,18 +112,17 @@ onMounted(async () => {
             </div>
             
             <div class="mt-3.5 flex items-center justify-between">
-              <span class="text-base font-bold text-primary">{{ formatPrice(item.price) }}</span>
-              
+              <span class="flex items-baseline gap-1.5">
+                <span class="text-base font-bold text-primary">{{ formatPrice(salePrice(item.price)) }}</span>
+                <span v-if="hasDiscount" class="text-outline line-through text-xs">{{ formatPrice(item.price) }}</span>
+              </span>
+
               <Button as-child class="primary-gradient h-8 translate-y-4 px-3.5 text-xs font-bold text-white opacity-0 transition-all duration-300 group-hover:translate-y-0 group-hover:opacity-100">
                 <RouterLink :to="`/product/${item.slug}`">查看</RouterLink>
               </Button>
             </div>
           </Card>
           <!-- 右邊四小圖 -->
-        </div>
-        <div v-else class="grid grid-cols-1 gap-5 md:grid-cols-4">
-          <div class="h-80 animate-pulse rounded-xl bg-surface-container-lowest md:col-span-2 md:row-span-2" />
-          <div v-for="index in 4" :key="index" class="h-56 animate-pulse rounded-xl bg-surface-container-lowest" />
         </div>
         <!-- sales商品展示 -->
       </section>
