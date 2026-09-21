@@ -1,40 +1,31 @@
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { RouterLink } from 'vue-router'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { useAuth } from '@/composables/useAuth'
 import { formatPrice } from '@/composables/useCatalog'
+import { loadFlashSale } from '@/composables/useSiteSettings'
 import { supabase } from '@/lib/supabase'
 
-interface EditableProduct {
+interface ProductCard {
   id: string
   slug: string
-  category_id: string
   name: string
-  price: number | string
-  original_price: number | string
-  tag: string
+  price: number
+  originalPrice: number | null
   status: string
-  quantity: number | string
-  reserved_quantity: number
-  saving: boolean
-  savedAt: number | null
-  error: string
-}
-
-interface Category {
-  id: string
-  name: string
+  image: string | null
 }
 
 const { isAuthReady, isAdmin } = useAuth()
 
-const products = ref<EditableProduct[]>([])
-const categories = ref<Category[]>([])
+const products = ref<ProductCard[]>([])
+const activeIds = ref<Set<string>>(new Set())
 const isLoading = ref(false)
 const loadError = ref('')
 const statusFilter = ref<'all' | 'active' | 'draft' | 'archived'>('all')
+const keyword = ref('')
 
 const statusOptions = [
   { value: 'active', label: '上架' },
@@ -42,127 +33,62 @@ const statusOptions = [
   { value: 'archived', label: '封存' },
 ]
 
-const filteredProducts = computed(() =>
-  statusFilter.value === 'all'
-    ? products.value
-    : products.value.filter((product) => product.status === statusFilter.value),
-)
+const filteredProducts = computed(() => {
+  const kw = keyword.value.trim().toLowerCase()
+  return products.value.filter((product) => {
+    const statusOk = statusFilter.value === 'all' || product.status === statusFilter.value
+    const kwOk = !kw || product.name.toLowerCase().includes(kw) || product.slug.toLowerCase().includes(kw)
+    return statusOk && kwOk
+  })
+})
+
+function statusLabel(status: string) {
+  return statusOptions.find((option) => option.value === status)?.label ?? status
+}
 
 async function loadData() {
   isLoading.value = true
   loadError.value = ''
 
-  const [{ data: categoryRows, error: categoryError }, { data: productRows, error: productError }] = await Promise.all([
-    supabase.from('categories').select('id, name').order('sort_order', { ascending: true }),
-    // 管理員可讀所有狀態的商品；帶出庫存
-    supabase
-      .from('products')
-      .select('id, slug, category_id, name, price, original_price, tag, status, sort_order, inventory(quantity, reserved_quantity)')
-      .order('sort_order', { ascending: true }),
-  ])
+  const { data: productRows, error: productError } = await supabase
+    .from('products')
+    .select('id, slug, name, price, original_price, status, sort_order, product_images(image_url, is_primary, sort_order)')
+    .order('sort_order', { ascending: true })
 
-  if (categoryError || productError) {
-    loadError.value = (categoryError ?? productError)?.message ?? '資料載入失敗。'
+  if (productError) {
+    loadError.value = productError.message
     isLoading.value = false
     return
   }
 
-  categories.value = (categoryRows ?? []) as Category[]
-
   products.value = ((productRows ?? []) as unknown as Array<Record<string, unknown>>).map((row) => {
-    const inv = Array.isArray(row.inventory) ? row.inventory[0] : row.inventory
-    const inventory = (inv ?? null) as { quantity: number | null; reserved_quantity: number | null } | null
+    const images = (Array.isArray(row.product_images) ? row.product_images : []) as Array<{
+      image_url: string
+      is_primary: boolean | null
+      sort_order: number | null
+    }>
+    const primary = [...images].sort(
+      (a, b) => Number(Boolean(b.is_primary)) - Number(Boolean(a.is_primary)) || (a.sort_order ?? 0) - (b.sort_order ?? 0),
+    )[0]
     return {
       id: row.id as string,
       slug: row.slug as string,
-      category_id: row.category_id as string,
       name: row.name as string,
       price: Number(row.price),
-      original_price: row.original_price === null ? '' : Number(row.original_price),
-      tag: (row.tag as string | null) ?? '',
+      originalPrice: row.original_price === null ? null : Number(row.original_price),
       status: row.status as string,
-      quantity: inventory?.quantity ?? 0,
-      reserved_quantity: inventory?.reserved_quantity ?? 0,
-      saving: false,
-      savedAt: null,
-      error: '',
+      image: primary?.image_url ?? null,
     }
   })
+
+  // 標記活動中商品（來自 site_settings.flash_sale.product_ids）
+  const flashSale = await loadFlashSale({ force: true })
+  activeIds.value = new Set(flashSale?.productIds ?? [])
 
   isLoading.value = false
 }
 
-async function saveProduct(product: EditableProduct) {
-  product.saving = true
-  product.error = ''
-  product.savedAt = null
-
-  const price = Number(product.price)
-  const originalPrice = product.original_price === null || product.original_price === ''
-    ? null
-    : Number(product.original_price)
-  const quantity = Math.max(0, Math.trunc(Number(product.quantity)))
-
-  if (Number.isNaN(price) || price < 0) {
-    product.error = '售價需為 0 以上的數字。'
-    product.saving = false
-    return
-  }
-  if (originalPrice !== null && (Number.isNaN(originalPrice) || originalPrice < price)) {
-    product.error = '原價需大於或等於售價。'
-    product.saving = false
-    return
-  }
-  if (quantity < product.reserved_quantity) {
-    product.error = `庫存不可低於已保留數量（${product.reserved_quantity}）。`
-    product.saving = false
-    return
-  }
-
-  const { error: productError } = await supabase
-    .from('products')
-    .update({
-      name: product.name,
-      category_id: product.category_id,
-      price,
-      original_price: originalPrice,
-      tag: product.tag ? product.tag : null,
-      status: product.status,
-    })
-    .eq('id', product.id)
-
-  if (productError) {
-    product.error = productError.message
-    product.saving = false
-    return
-  }
-
-  const { error: inventoryError } = await supabase
-    .from('inventory')
-    .upsert({ product_id: product.id, quantity }, { onConflict: 'product_id' })
-
-  if (inventoryError) {
-    product.error = inventoryError.message
-    product.saving = false
-    return
-  }
-
-  product.price = price
-  product.original_price = originalPrice ?? ''
-  product.quantity = quantity
-  product.saving = false
-  product.savedAt = Date.now()
-}
-
-watch(
-  [isAuthReady, isAdmin],
-  ([ready, admin]) => {
-    if (ready && admin) {
-      void loadData()
-    }
-  },
-  { immediate: true },
-)
+onMounted(loadData)
 </script>
 
 <template>
@@ -181,6 +107,10 @@ watch(
         </div>
       </div>
 
+      <div v-if="isAdmin && !isLoading && !loadError" class="mb-5">
+        <Input v-model="keyword" placeholder="搜尋商品名稱或代碼…" class="max-w-sm" />
+      </div>
+
       <div v-if="!isAuthReady" class="rounded-xl bg-surface-container-lowest p-8 text-center text-base text-on-surface-variant">
         載入中...
       </div>
@@ -194,80 +124,48 @@ watch(
       </div>
 
       <template v-else>
-        <div v-if="isLoading" class="space-y-4">
-          <div v-for="index in 4" :key="index" class="h-28 animate-pulse rounded-xl bg-surface-container-lowest" />
+        <div v-if="isLoading" class="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4">
+          <div v-for="index in 8" :key="index" class="h-52 animate-pulse rounded-xl bg-surface-container-lowest" />
         </div>
 
         <div v-else-if="loadError" class="rounded-xl bg-surface-container-lowest p-8 text-center text-base text-error">
           {{ loadError }}
         </div>
 
-        <div v-else class="space-y-4">
-          <section v-for="product in filteredProducts" :key="product.id" class="rounded-xl bg-surface-container-lowest p-5 shadow-sm md:p-6">
-            <div class="mb-4 flex items-center justify-between gap-3">
-              <p class="font-mono text-xs text-on-surface-variant">{{ product.slug }}</p>
+        <div v-else-if="!filteredProducts.length" class="rounded-xl bg-surface-container-lowest p-8 text-center text-base text-on-surface-variant">
+          找不到符合的商品。
+        </div>
+
+        <div v-else class="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4">
+          <RouterLink
+            v-for="product in filteredProducts"
+            :key="product.id"
+            :to="{ name: 'AdminProductDetail', params: { id: product.id } }"
+            class="group overflow-hidden rounded-xl bg-surface-container-lowest shadow-sm transition-all hover:-translate-y-1 hover:shadow-lg"
+          >
+            <div class="relative aspect-square bg-surface-container-low">
+              <img v-if="product.image" :src="product.image" :alt="product.name" class="h-full w-full object-cover" />
+              <div v-else class="flex h-full w-full items-center justify-center text-xs text-outline">無圖片</div>
+              <span v-if="activeIds.has(product.id)" class="absolute left-2 top-2 rounded-full bg-primary px-2 py-0.5 text-[11px] font-bold text-on-primary">活動中</span>
+            </div>
+            <div class="p-3">
+              <p class="truncate font-bold text-on-surface">{{ product.name }}</p>
+              <div class="mt-1 flex items-baseline gap-2">
+                <span class="font-bold text-primary">{{ formatPrice(product.price) }}</span>
+                <span v-if="product.originalPrice" class="text-xs text-outline line-through">{{ formatPrice(product.originalPrice) }}</span>
+              </div>
               <span
-                class="rounded-full px-3 py-1 text-xs font-bold"
+                class="mt-2 inline-block rounded-full px-2.5 py-0.5 text-xs font-bold"
                 :class="{
                   'bg-primary/10 text-primary': product.status === 'active',
                   'bg-surface-container text-on-surface-variant': product.status === 'draft',
                   'bg-error/10 text-error': product.status === 'archived',
                 }"
               >
-                {{ statusOptions.find((option) => option.value === product.status)?.label ?? product.status }}
+                {{ statusLabel(product.status) }}
               </span>
             </div>
-
-            <div class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-              <label class="flex flex-col gap-1.5 md:col-span-2 lg:col-span-1">
-                <span class="text-sm font-semibold text-on-surface-variant">商品名稱</span>
-                <Input v-model="product.name" />
-              </label>
-              <label class="flex flex-col gap-1.5">
-                <span class="text-sm font-semibold text-on-surface-variant">分類</span>
-                <select v-model="product.category_id" class="h-9 rounded-md border border-input bg-transparent px-3 text-sm outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50">
-                  <option v-for="category in categories" :key="category.id" :value="category.id">{{ category.name }}</option>
-                </select>
-              </label>
-              <label class="flex flex-col gap-1.5">
-                <span class="text-sm font-semibold text-on-surface-variant">狀態</span>
-                <select v-model="product.status" class="h-9 rounded-md border border-input bg-transparent px-3 text-sm outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50">
-                  <option v-for="option in statusOptions" :key="option.value" :value="option.value">{{ option.label }}</option>
-                </select>
-              </label>
-              <label class="flex flex-col gap-1.5">
-                <span class="text-sm font-semibold text-on-surface-variant">售價</span>
-                <Input v-model="product.price" type="number" min="0" />
-              </label>
-              <label class="flex flex-col gap-1.5">
-                <span class="text-sm font-semibold text-on-surface-variant">原價（選填）</span>
-                <Input v-model="product.original_price" type="number" min="0" placeholder="無折扣可留空" />
-              </label>
-              <label class="flex flex-col gap-1.5">
-                <span class="text-sm font-semibold text-on-surface-variant">標籤（選填）</span>
-                <Input v-model="product.tag" placeholder="例：人氣、新品" />
-              </label>
-              <label class="flex flex-col gap-1.5">
-                <span class="text-sm font-semibold text-on-surface-variant">
-                  庫存數量<span class="ml-1 font-normal text-outline-variant">（已保留 {{ product.reserved_quantity }}）</span>
-                </span>
-                <Input v-model="product.quantity" type="number" min="0" />
-              </label>
-            </div>
-
-            <div class="mt-4 flex items-center justify-end gap-3">
-              <p v-if="product.error" class="mr-auto text-sm font-medium text-error">{{ product.error }}</p>
-              <p v-else-if="product.savedAt" class="mr-auto text-sm font-medium text-primary">已儲存</p>
-              <span class="text-sm text-on-surface-variant">目前售價 {{ formatPrice(Number(product.price) || 0) }}</span>
-              <Button class="primary-gradient rounded-lg px-6 font-bold text-on-primary" :disabled="product.saving" @click="saveProduct(product)">
-                {{ product.saving ? '儲存中' : '儲存' }}
-              </Button>
-            </div>
-          </section>
-
-          <div v-if="!filteredProducts.length" class="rounded-xl bg-surface-container-lowest p-8 text-center text-base text-on-surface-variant">
-            這個狀態目前沒有商品。
-          </div>
+          </RouterLink>
         </div>
       </template>
     </main>
