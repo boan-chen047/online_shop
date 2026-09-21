@@ -87,21 +87,21 @@ const navItemClass = (path: string) => {
         
         <div class="hidden md:flex items-center gap-1">
           <RouterLink to="/" :class="navItemClass('/')">
-            Home
+            首頁
           </RouterLink>
           
           <NavigationMenu>
             <NavigationMenuList>
               <NavigationMenuItem>
                 <NavigationMenuTrigger :class="navItemClass('/products')" class="hover:bg-transparent focus:bg-transparent data-[state=open]:bg-transparent">
-                  Product
+                  商品
                 </NavigationMenuTrigger>
                 
                 <NavigationMenuContent>
                   <div class="w-[750px] p-6 bg-surface-container-lowest shadow-2xl rounded-2xl border border-outline-variant/10">
                     <div class="flex justify-between items-center mb-6 px-2">
-                      <h3 class="font-bold text-lg font-headline text-on-surface">Explore Categories</h3>
-                      <RouterLink to="/products" class="text-xs text-primary font-bold hover:underline">View All &rarr;</RouterLink>
+                      <h3 class="font-bold text-lg font-headline text-on-surface">探索分類</h3>
+                      <RouterLink to="/products" class="text-xs text-primary font-bold hover:underline">查看全部 &rarr;</RouterLink>
                     </div>
 
                     <div class="grid grid-cols-6 gap-3">
@@ -122,7 +122,7 @@ const navItemClass = (path: string) => {
           </NavigationMenu>
 
           <RouterLink to="/news" :class="navItemClass('/news')">
-            News
+            消息
           </RouterLink>
         </div>
       </div>
@@ -161,7 +161,7 @@ const navItemClass = (path: string) => {
               {{ itemCount }}
             </span>
           </span>
-          <span class="font-bold text-xs">Shopping Cart</span>
+          <span class="font-bold text-xs">購物車</span>
         </RouterLink>
         
         <RouterLink to="/userfile" :class="navItemClass('/userfile')" class="gap-2">
@@ -170,7 +170,7 @@ const navItemClass = (path: string) => {
             {{ userInitials }}
           </span>
           <User v-else class="size-5" />
-          <span class="font-bold text-xs">{{ currentUser ? userProfile.name : 'User Profile' }}</span>
+          <span class="font-bold text-xs">{{ currentUser ? userProfile.name : '會員中心' }}</span>
         </RouterLink>
       </div>
       
@@ -180,11 +180,11 @@ const navItemClass = (path: string) => {
   <nav class="fixed bottom-0 left-0 right-0 bg-white/80 glass-effect md:hidden z-50 flex justify-around items-center py-3 border-t shadow-[0_-4px_24px_rgba(0,0,0,0.06)]">
     <RouterLink to="/" class="flex flex-col items-center gap-1 text-primary">
       <HomeIcon class="size-6 fill-primary" />
-      <span class="text-[10px] font-bold">Home</span>
+      <span class="text-[10px] font-bold">首頁</span>
     </RouterLink>
     <RouterLink to="/products" class="flex flex-col items-center gap-1 text-on-surface-variant hover:text-primary transition-colors">
       <Grid class="size-6" />
-      <span class="text-[10px] font-bold">Browse</span>
+      <span class="text-[10px] font-bold">逛逛</span>
     </RouterLink>
     <RouterLink v-if="isAdmin" to="/admin" class="flex flex-col items-center gap-1 text-on-surface-variant hover:text-primary transition-colors">
       <LayoutDashboard class="size-6" />
@@ -197,7 +197,7 @@ const navItemClass = (path: string) => {
           {{ itemCount }}
         </span>
       </span>
-      <span class="text-[10px] font-bold">Cart</span>
+      <span class="text-[10px] font-bold">購物車</span>
     </RouterLink>
     <RouterLink to="/userfile" class="flex flex-col items-center gap-1 text-on-surface-variant hover:text-primary transition-colors">
       <img v-if="currentUser && userProfile.avatar" :src="userProfile.avatar" :alt="userProfile.name" class="size-6 rounded-full object-cover">
@@ -205,7 +205,7 @@ const navItemClass = (path: string) => {
         {{ userInitials }}
       </span>
       <User v-else class="size-6" />
-      <span class="text-[10px] font-bold">Account</span>
+      <span class="text-[10px] font-bold">會員</span>
     </RouterLink>
   </nav>
 </template>

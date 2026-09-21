@@ -44,9 +44,9 @@ const timeLeft = computed(() => {
 })
 
 const label = computed(() => {
-  if (timeLeft.value.phase === 'before') return 'Starts In'
-  if (timeLeft.value.phase === 'ended') return 'Promotion Ended'
-  return 'Ending In'
+  if (timeLeft.value.phase === 'before') return '即將開始'
+  if (timeLeft.value.phase === 'ended') return '活動已結束'
+  return '限時倒數'
 })
 
 const timeParts = computed(() => [

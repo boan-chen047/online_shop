@@ -42,13 +42,13 @@ onMounted(async () => {
           <img alt="minimalist fashion boutique" class="w-full h-full object-cover" src="@/assets/—Pngtree—supermarket blur background_15628023.png"/>
           <div class="absolute inset-0 bg-gradient-to-r from-black/60 to-transparent flex items-center px-14">
             <div class="max-w-lg text-white">
-              <span class="mb-3 inline-block rounded-full py-1.5 text-sm font-bold uppercase tracking-widest">The Summer Edit '26</span>
-              <h1 class="mb-7 font-headline text-[46px] font-extrabold leading-tight">Small Goods<br/>Big Joy</h1>
+              <span class="mb-3 inline-block rounded-full py-1.5 text-sm font-bold uppercase tracking-widest">2026 夏季精選</span>
+              <h1 class="mb-7 font-headline text-[46px] font-extrabold leading-tight">小東西<br/>大快樂</h1>
               <!-- <p class="text-lg text-white/80 mb-8 font-body">Discover a curated selection of minimalist essentials designed for the modern professional.</p> -->
               <div class="flex">
                 <Button as-child class="primary-gradient h-11 px-6 font-bold text-on-primary shadow-lg hover:opacity-80">
                   <RouterLink to="/products">
-                    Start Shopping
+                    開始購物
                   </RouterLink>
                 </Button>
               </div>
@@ -64,9 +64,9 @@ onMounted(async () => {
           <div>
             <div class="mb-1 flex items-center gap-2.5">
               <Zap class="size-7 fill-primary text-primary" />
-              <h2 class="font-headline text-xl font-bold uppercase tracking-tight text-on-surface">Discount</h2>
+              <h2 class="font-headline text-xl font-bold uppercase tracking-tight text-on-surface">限時優惠</h2>
             </div>
-            <p class="text-sm text-outline">Premium pieces, limited time, exclusive prices.</p>
+            <p class="text-sm text-outline">嚴選好物，限時特價，錯過不再。</p>
           </div>
           <CountdownTimer :startDate="flashSaleStart" :targetDate="flashSaleEnd" />
         </div>
