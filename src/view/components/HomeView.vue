@@ -197,7 +197,6 @@ onMounted(async () => {
               <h3 class="mb-2 text-xl font-bold">{{ bestSellerItems[0].name }}</h3>
               <div class="flex items-center gap-3">
                 <span class="text-xl font-black text-on-surface">{{ formatPrice(bestSellerItems[0].price) }}</span>
-                <span v-if="bestSellerItems[0].originalPrice" class="text-outline line-through text-sm">{{ formatPrice(bestSellerItems[0].originalPrice) }}</span>
               </div>
               <Button as-child class="primary-gradient mt-5 w-full translate-y-4 font-bold text-white opacity-0 transition-all duration-300 group-hover:translate-y-0 group-hover:opacity-100">
                 <RouterLink :to="`/product/${bestSellerItems[0].slug}`">查看商品</RouterLink>
@@ -215,10 +214,7 @@ onMounted(async () => {
             </div>
 
             <div class="mt-3.5 flex items-center justify-between">
-              <span class="flex items-baseline gap-1.5">
-                <span class="text-base font-bold text-primary">{{ formatPrice(item.price) }}</span>
-                <span v-if="item.originalPrice" class="text-outline line-through text-xs">{{ formatPrice(item.originalPrice) }}</span>
-              </span>
+              <span class="text-base font-bold text-primary">{{ formatPrice(item.price) }}</span>
 
               <Button as-child class="primary-gradient h-8 translate-y-4 px-3.5 text-xs font-bold text-white opacity-0 transition-all duration-300 group-hover:translate-y-0 group-hover:opacity-100">
                 <RouterLink :to="`/product/${item.slug}`">查看</RouterLink>
