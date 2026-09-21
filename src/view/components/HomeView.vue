@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
+import { useNow } from '@vueuse/core'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import CountdownTimer from './CountdownTimer.vue'
@@ -29,6 +30,19 @@ function salePrice(price: number) {
   return Math.round((price * flashSaleDiscount.value) / 10)
 }
 const hasDiscount = computed(() => flashSaleDiscount.value < 10)
+
+// 是否在活動時間內（now ∈ [開始, 結束]）；每秒更新
+const now = useNow()
+const isFlashActive = computed(() => {
+  const t = now.value.getTime()
+  const startMs = flashSaleStart.value ? new Date(flashSaleStart.value).getTime() : Number.NaN
+  const endMs = new Date(flashSaleEnd.value).getTime()
+  const started = !Number.isFinite(startMs) || t >= startMs
+  const notEnded = !Number.isFinite(endMs) || t < endMs
+  return started && notEnded
+})
+// 首頁限時優惠只在「有選商品」且「活動時間內」才顯示
+const showFlashSale = computed(() => flashSaleItems.value.length > 0 && isFlashActive.value)
 
 onMounted(async () => {
   void loadCatalog()
@@ -69,7 +83,7 @@ onMounted(async () => {
       </section>
       <!-- 封面形象照 -->
       <!-- sales -->
-      <section v-if="flashSaleItems.length" class="mb-14 px-5">
+      <section v-if="showFlashSale" class="mb-14 px-5">
         <!-- sales最上方說明 -->
         <div class="mb-7 flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
           <div>
