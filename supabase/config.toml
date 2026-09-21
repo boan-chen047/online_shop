@@ -419,3 +419,7 @@ verify_jwt = true
 [functions.ecpay-callback]
 # 綠界 server-to-server 通知不帶使用者 JWT，必須關閉驗證
 verify_jwt = false
+
+[functions.ecpay-result]
+# 綠界付款後 client-side POST 到 OrderResultURL，不帶 JWT，必須關閉驗證
+verify_jwt = false
