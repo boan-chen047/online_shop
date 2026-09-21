@@ -1,4 +1,5 @@
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
+import { useNow } from '@vueuse/core'
 import { isSupabaseConfigured, supabase } from '@/lib/supabase'
 
 export interface FlashSaleWindow {
@@ -61,4 +62,42 @@ export function useSiteSettings() {
     flashSale,
     loadFlashSale,
   }
+}
+
+export interface FlashSalePriceInfo {
+  onSale: boolean // 此商品目前是否在活動折扣中
+  display: number // 要顯示的價格（活動中=折後價；否則=原售價）
+  discountPercent: number // 省下的百分比（活動中才 > 0）
+}
+
+// 折扣定價（商品頁/詳情頁/首頁共用）：折扣一律由「限時活動」決定——
+// 只有在活動時間內、且被選為活動商品、且有設折扣的商品，才有折後價。
+export function useFlashSalePricing() {
+  const now = useNow()
+  void loadFlashSale()
+
+  const isActive = computed(() => {
+    const window = flashSale.value
+    if (!window) {
+      return false
+    }
+    const t = now.value.getTime()
+    return t >= window.start.getTime() && t < window.end.getTime()
+  })
+
+  const activeIds = computed(() =>
+    isActive.value ? new Set(flashSale.value?.productIds ?? []) : new Set<string>(),
+  )
+  const discount = computed(() => flashSale.value?.discount ?? 10)
+
+  function priceFor(productId: string, price: number): FlashSalePriceInfo {
+    const onSale = activeIds.value.has(productId) && discount.value < 10
+    return {
+      onSale,
+      display: onSale ? Math.round((price * discount.value) / 10) : price,
+      discountPercent: onSale ? Math.round((1 - discount.value / 10) * 100) : 0,
+    }
+  }
+
+  return { isActive, activeIds, discount, priceFor }
 }

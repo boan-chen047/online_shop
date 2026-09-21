@@ -4,6 +4,7 @@ import { RouterLink, useRoute, useRouter } from 'vue-router'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { fetchProductByIdentifier, formatPrice, type CatalogProduct } from '@/composables/useCatalog'
+import { useFlashSalePricing } from '@/composables/useSiteSettings'
 import { useCart } from '@/composables/useCart'
 import { ChevronRight, Minus, Plus, ShoppingBag } from 'lucide-vue-next'
 
@@ -16,14 +17,13 @@ const isLoading = ref(false)
 const isAddingToCart = ref(false)
 const errorMessage = ref('')
 const { addToCart, cartError } = useCart()
+const { priceFor } = useFlashSalePricing()
 
-const discountPercent = computed(() => {
-  if (!product.value?.originalPrice) {
-    return 0
-  }
-
-  return Math.round((1 - product.value.price / product.value.originalPrice) * 100)
-})
+// 折扣一律由限時活動決定；不在活動中的商品沒有折扣價
+const priceInfo = computed(() =>
+  product.value ? priceFor(product.value.id, product.value.price) : null,
+)
+const discountPercent = computed(() => priceInfo.value?.discountPercent ?? 0)
 
 const galleryImages = computed(() =>
   product.value?.images.length ? product.value.images : [],
@@ -145,8 +145,8 @@ watch(
                 {{ product.name }}
               </h1>
               <div class="flex flex-wrap items-baseline gap-4">
-                <span class="text-4xl md:text-5xl font-headline font-bold text-primary">{{ formatPrice(product.price) }}</span>
-                <span v-if="product.originalPrice" class="text-lg text-outline line-through">{{ formatPrice(product.originalPrice) }}</span>
+                <span class="text-4xl md:text-5xl font-headline font-bold text-primary">{{ formatPrice(priceInfo?.display ?? product.price) }}</span>
+                <span v-if="priceInfo?.onSale" class="text-lg text-outline line-through">{{ formatPrice(product.price) }}</span>
                 <Badge v-if="discountPercent" class="bg-error/10 text-error border-none font-bold">
                   省 {{ discountPercent }}%
                 </Badge>

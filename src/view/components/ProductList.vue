@@ -4,6 +4,7 @@ import { useRoute, useRouter, RouterLink } from 'vue-router'
 import { Button } from '@/components/ui/button'
 import { ArrowRight, ChevronRight, ChevronDown, X } from 'lucide-vue-next'
 import { formatPrice, useCatalog } from '@/composables/useCatalog'
+import { useFlashSalePricing } from '@/composables/useSiteSettings'
 import {
   Pagination,
   PaginationContent,
@@ -16,6 +17,7 @@ import {
 const route = useRoute()
 const router = useRouter()
 const { categories, products, isLoading, errorMessage, loadCatalog } = useCatalog()
+const { priceFor } = useFlashSalePricing()
 
 onMounted(() => {
   void loadCatalog()
@@ -163,8 +165,8 @@ watch(
 
               <div class="mt-3 flex items-end justify-between gap-3">
                 <div class="flex items-baseline gap-2">
-                  <span class="text-xl font-extrabold text-primary">{{ formatPrice(product.price) }}</span>
-                  <span v-if="product.originalPrice" class="text-xs font-medium text-outline line-through">{{ formatPrice(product.originalPrice) }}</span>
+                  <span class="text-xl font-extrabold text-primary">{{ formatPrice(priceFor(product.id, product.price).display) }}</span>
+                  <span v-if="priceFor(product.id, product.price).onSale" class="text-xs font-medium text-outline line-through">{{ formatPrice(product.price) }}</span>
                 </div>
                 <span class="mt-auto inline-flex items-center gap-1 self-end text-xs font-bold uppercase tracking-[0.06em] text-on-surface-variant transition-colors group-hover:text-primary">
                   查看
