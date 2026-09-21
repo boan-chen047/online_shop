@@ -7,6 +7,7 @@ import CountdownTimer from './CountdownTimer.vue'
 import { Zap } from 'lucide-vue-next'
 import { formatPrice, useCatalog } from '@/composables/useCatalog'
 import { loadFlashSale } from '@/composables/useSiteSettings'
+import { supabase } from '@/lib/supabase'
 
 const { products, loadCatalog } = useCatalog()
 
@@ -44,8 +45,41 @@ const isFlashActive = computed(() => {
 // 首頁限時優惠只在「有選商品」且「活動時間內」才顯示
 const showFlashSale = computed(() => flashSaleItems.value.length > 0 && isFlashActive.value)
 
+// 熱銷商品：依實際銷量排行（top_selling_products），不足 5 個用其餘上架商品補滿
+const topSellerIds = ref<string[]>([])
+const bestSellerItems = computed(() => {
+  const byId = new Map(products.value.map((product) => [product.id, product]))
+  const picked: typeof products.value = []
+  const seen = new Set<string>()
+  for (const id of topSellerIds.value) {
+    const product = byId.get(id)
+    if (product && !seen.has(id)) {
+      picked.push(product)
+      seen.add(id)
+    }
+  }
+  for (const product of products.value) {
+    if (picked.length >= 5) break
+    if (!seen.has(product.id)) {
+      picked.push(product)
+      seen.add(product.id)
+    }
+  }
+  return picked.slice(0, 5)
+})
+
+async function loadTopSellers() {
+  const { data, error } = await supabase.rpc('top_selling_products', { limit_count: 8 })
+  if (error) {
+    console.warn('Top selling products could not be loaded.', error)
+    return
+  }
+  topSellerIds.value = ((data ?? []) as Array<{ product_id: string }>).map((row) => row.product_id)
+}
+
 onMounted(async () => {
   void loadCatalog()
+  void loadTopSellers()
   const window = await loadFlashSale()
   if (window) {
     flashSaleStart.value = window.start
@@ -141,6 +175,40 @@ onMounted(async () => {
         <!-- sales商品展示 -->
       </section>
       <!-- sales -->
+
+      <!-- 熱銷商品：不在活動時間時補上 -->
+      <section v-if="!showFlashSale && bestSellerItems.length" class="mb-14 px-5">
+        <div class="mb-7">
+          <div class="mb-1 flex items-center gap-2.5">
+            <Zap class="size-7 fill-primary text-primary" />
+            <h2 class="font-headline text-xl font-bold uppercase tracking-tight text-on-surface">熱銷商品</h2>
+          </div>
+          <p class="text-sm text-outline">大家都在買，人氣精選推薦。</p>
+        </div>
+
+        <div class="grid grid-cols-2 gap-5 md:grid-cols-3 lg:grid-cols-5">
+          <Card v-for="item in bestSellerItems" :key="item.id" class="group flex flex-col justify-between border-none bg-surface-container-lowest p-3.5 shadow-sm transition-all hover:-translate-y-1">
+            <div>
+              <div class="mb-3.5 aspect-square overflow-hidden rounded-lg bg-surface-container-low">
+                <img :alt="item.name" class="w-full h-full object-cover mix-blend-multiply" :src="item.image"/>
+              </div>
+              <h4 class="font-bold text-on-surface truncate">{{ item.name }}</h4>
+            </div>
+
+            <div class="mt-3.5 flex items-center justify-between">
+              <span class="flex items-baseline gap-1.5">
+                <span class="text-base font-bold text-primary">{{ formatPrice(item.price) }}</span>
+                <span v-if="item.originalPrice" class="text-outline line-through text-xs">{{ formatPrice(item.originalPrice) }}</span>
+              </span>
+
+              <Button as-child class="primary-gradient h-8 translate-y-4 px-3.5 text-xs font-bold text-white opacity-0 transition-all duration-300 group-hover:translate-y-0 group-hover:opacity-100">
+                <RouterLink :to="`/product/${item.slug}`">查看</RouterLink>
+              </Button>
+            </div>
+          </Card>
+        </div>
+      </section>
+      <!-- 熱銷商品 -->
     </main>
   </div>
 </template>
