@@ -96,7 +96,11 @@ Deno.serve(async (req) => {
     }
 
     if (typeof backOrigin === 'string' && backOrigin.startsWith('http')) {
+      // ClientBackURL：綠界成功頁「返回商店」按鈕（手動備援）
       params.ClientBackURL = `${backOrigin}/checkout/result?order=${order.id}`
+      // OrderResultURL：綠界付款後自動 POST 到此，由 ecpay-result 轉回前端結果頁（免手動點）
+      params.OrderResultURL =
+        `${supabaseUrl}/functions/v1/ecpay-result?back=${encodeURIComponent(backOrigin)}&order=${order.id}`
     }
 
     params.CheckMacValue = await makeCheckMacValue(params, hashKey, hashIV)

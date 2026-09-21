@@ -1,11 +1,12 @@
 <script setup lang="ts">
 import { ref, onMounted, onBeforeUnmount } from 'vue'
-import { RouterLink, useRoute } from 'vue-router'
+import { RouterLink, useRoute, useRouter } from 'vue-router'
 import { Button } from '@/components/ui/button'
 import { CheckCircle2, Clock, XCircle } from 'lucide-vue-next'
 import { supabase } from '@/lib/supabase'
 
 const route = useRoute()
+const router = useRouter()
 const orderId = String(route.query.order ?? '')
 
 // pending：等待綠界回呼把訂單改成 paid；paid：已付款；unknown：查不到或逾時
@@ -15,6 +16,20 @@ const total = ref<number | null>(null)
 let timer: ReturnType<typeof setTimeout> | null = null
 let attempts = 0
 const maxAttempts = 10
+
+// 付款成功後倒數自動返回商店
+const redirectSeconds = ref(20)
+let redirectTimer: ReturnType<typeof setInterval> | null = null
+
+function startRedirectCountdown() {
+  redirectTimer = setInterval(() => {
+    redirectSeconds.value -= 1
+    if (redirectSeconds.value <= 0) {
+      if (redirectTimer) clearInterval(redirectTimer)
+      void router.push('/products')
+    }
+  }, 1000)
+}
 
 async function checkStatus() {
   if (!orderId) {
@@ -37,6 +52,7 @@ async function checkStatus() {
 
   if (data.payment_status === 'paid') {
     state.value = 'paid'
+    startRedirectCountdown()
     return
   }
 
@@ -54,6 +70,7 @@ async function checkStatus() {
 onMounted(checkStatus)
 onBeforeUnmount(() => {
   if (timer) clearTimeout(timer)
+  if (redirectTimer) clearInterval(redirectTimer)
 })
 </script>
 
@@ -72,12 +89,13 @@ onBeforeUnmount(() => {
         <p v-if="total !== null" class="mt-2 text-base text-on-surface-variant">已完成付款，金額 NT${{ total }}。</p>
         <p class="mt-1 text-sm text-on-surface-variant">訂單編號</p>
         <p class="font-mono text-sm">{{ orderId }}</p>
-        <div class="mt-8 flex gap-3">
+        <p class="mt-4 text-sm text-on-surface-variant">{{ redirectSeconds }} 秒後自動返回商店…</p>
+        <div class="mt-6 flex gap-3">
           <Button as-child class="primary-gradient rounded-xl px-6 font-bold text-on-primary">
             <RouterLink to="/orders">查看我的訂單</RouterLink>
           </Button>
           <Button as-child variant="outline" class="rounded-xl px-6 font-bold">
-            <RouterLink to="/products">繼續購物</RouterLink>
+            <RouterLink to="/products">立即返回商店</RouterLink>
           </Button>
         </div>
       </template>

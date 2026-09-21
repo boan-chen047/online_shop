@@ -28,8 +28,12 @@ export async function makeCheckMacValue(
   hashKey: string,
   hashIV: string,
 ): Promise<string> {
+  // 只排除 CheckMacValue 本身與未設定(undefined)的參數。
+  // 注意：不可濾掉空字串值——綠界的付款結果通知會回傳 CustomField2=、CustomField3=、
+  // StoreID= 等空值欄位，且綠界計算 CheckMacValue 時「有把空值欄位算進去」；
+  // 若這裡把空值濾掉，回傳通知的驗章就會永遠對不上，導致付款成功卻無法標記訂單。
   const keys = Object.keys(params)
-    .filter((key) => key !== 'CheckMacValue' && params[key] !== undefined && params[key] !== '')
+    .filter((key) => key !== 'CheckMacValue' && params[key] !== undefined)
     .sort((a, b) => a.toLowerCase().localeCompare(b.toLowerCase()))
 
   let raw = `HashKey=${hashKey}`
