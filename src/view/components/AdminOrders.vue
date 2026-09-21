@@ -1,108 +1,87 @@
 <script setup lang="ts">
-import { ref, watch } from 'vue'
+import { computed, ref, watch } from 'vue'
+import { useNow } from '@vueuse/core'
 import { RouterLink } from 'vue-router'
 import { Button } from '@/components/ui/button'
 import { useAuth } from '@/composables/useAuth'
 import { formatPrice } from '@/composables/useCatalog'
 import { supabase } from '@/lib/supabase'
 import { startEcpayPayment } from '@/lib/ecpay'
-
-interface OrderItem {
-  id: string
-  product_name: string
-  quantity: number
-  unit_price: number
-  line_total: number
-}
-
-interface Order {
-  id: string
-  payment_status: string
-  order_status: string
-  total: number
-  recipient_name: string | null
-  recipient_phone: string | null
-  shipping_address: string | null
-  note: string | null
-  placed_at: string
-  order_items: OrderItem[]
-}
+import {
+  type Order,
+  loadMyOrders,
+  orderStatusOptions,
+  paymentStatusLabel,
+  customerStatusLabel,
+  isOrderCompleted,
+  isInReviewPeriod,
+} from '@/composables/useOrders'
 
 const { isAuthReady, isAdmin, currentUser } = useAuth()
 
+const now = useNow()
 const orders = ref<Order[]>([])
 const isLoading = ref(false)
 const loadError = ref('')
 const updatingOrderId = ref('')
 const payingOrderId = ref('')
+const confirmingOrderId = ref('')
 
-const orderStatusOptions = [
-  { value: 'created', label: '已建立' },
-  { value: 'shipping', label: '出貨中' },
-  { value: 'received', label: '已完成' },
-]
+// 管理員看全部；顧客的「我的訂單」只顯示進行中（已完結進歷史訂單頁）。
+const displayedOrders = computed(() =>
+  isAdmin.value
+    ? orders.value
+    : orders.value.filter((order) => !isOrderCompleted(order, now.value.getTime())),
+)
 
-// 顯示用標籤：除了管理員可手動切換的三種，另含系統自動設定的取消／缺貨狀態。
-const orderStatusLabel: Record<string, string> = {
-  ...Object.fromEntries(orderStatusOptions.map((option) => [option.value, option.label])),
-  cancelled: '已取消',
-  out_of_stock: '缺貨待退款',
-}
-
-const paymentStatusLabel: Record<string, string> = {
-  unpaid: '未付款',
-  paid: '已付款',
-  failed: '付款失敗',
-  refunded: '已退款',
-  expired: '逾時未付',
+function reviewDeadline(order: Order) {
+  return order.closed_at ? new Date(order.closed_at).toLocaleString('zh-TW') : ''
 }
 
 async function loadOrders() {
   isLoading.value = true
   loadError.value = ''
-
-  // RLS 會自動過濾：顧客只拿得到自己的訂單，管理員拿得到全部。
-  const { data, error } = await supabase
-    .from('orders')
-    .select('id, payment_status, order_status, total, recipient_name, recipient_phone, shipping_address, note, placed_at, order_items(id, product_name, quantity, unit_price, line_total)')
-    .order('placed_at', { ascending: false })
-
-  if (error) {
-    loadError.value = error.message
+  try {
+    orders.value = await loadMyOrders()
+  } catch (error) {
+    loadError.value = error instanceof Error ? error.message : '訂單載入失敗。'
     orders.value = []
-  } else {
-    orders.value = (data ?? []) as unknown as Order[]
   }
-
   isLoading.value = false
 }
 
 async function updateOrderStatus(orderId: string, nextStatus: string) {
   updatingOrderId.value = orderId
-
   const { error } = await supabase
     .from('orders')
     .update({ order_status: nextStatus })
     .eq('id', orderId)
-
   if (error) {
     loadError.value = error.message
   } else {
-    const order = orders.value.find((item) => item.id === orderId)
-    if (order) {
-      order.order_status = nextStatus
-    }
+    await loadOrders()
   }
-
   updatingOrderId.value = ''
 }
 
-// 顧客對既有的未付款訂單重新前往綠界付款（沿用結帳時的 startEcpayPayment，
-// 會呼叫 ecpay-create 取得參數並導向綠界；成功會離開本頁，因此正常不會 resolve）。
+// 顧客提前結束鑑賞期 → 立即完結（後端 RPC 只允許操作自己的、received、鑑賞期內訂單）。
+async function confirmComplete(orderId: string) {
+  confirmingOrderId.value = orderId
+  loadError.value = ''
+  const { data, error } = await supabase.rpc('confirm_order_completed', { p_order_id: orderId })
+  if (error) {
+    loadError.value = error.message
+  } else if (data !== 'completed') {
+    loadError.value = '無法結束鑑賞期，請重新整理再試。'
+  } else {
+    await loadOrders()
+  }
+  confirmingOrderId.value = ''
+}
+
 async function payOrder(orderId: string) {
   payingOrderId.value = orderId
   loadError.value = ''
-
   try {
     await startEcpayPayment(orderId)
   } catch (error) {
@@ -150,12 +129,13 @@ watch(
           {{ loadError }}
         </div>
 
-        <div v-else-if="!orders.length" class="rounded-xl bg-surface-container-lowest p-8 text-center text-base text-on-surface-variant">
-          {{ isAdmin ? '目前還沒有任何訂單。' : '你還沒有訂單。' }}
+        <div v-else-if="!displayedOrders.length" class="rounded-xl bg-surface-container-lowest p-8 text-center text-base text-on-surface-variant">
+          {{ isAdmin ? '目前還沒有任何訂單。' : '目前沒有進行中的訂單。' }}
+          <p v-if="!isAdmin" class="mt-1 text-sm">已完結的訂單可到「會員中心 → 歷史訂單」查看。</p>
         </div>
 
         <div v-else class="space-y-5">
-          <section v-for="order in orders" :key="order.id" class="rounded-xl bg-surface-container-lowest p-6 shadow-sm md:p-7">
+          <section v-for="order in displayedOrders" :key="order.id" class="rounded-xl bg-surface-container-lowest p-6 shadow-sm md:p-7">
             <!-- 訂單表頭 -->
             <div class="flex flex-wrap items-start justify-between gap-4 border-b border-surface-container pb-4">
               <div class="min-w-0">
@@ -166,7 +146,7 @@ watch(
                 <span class="rounded-full bg-surface-container px-3 py-1.5 text-sm font-bold text-on-surface-variant">
                   {{ paymentStatusLabel[order.payment_status] ?? order.payment_status }}
                 </span>
-                <!-- 管理員可改出貨狀態，顧客只能看 -->
+                <!-- 管理員可改出貨狀態，顧客看友善狀態文字 -->
                 <select
                   v-if="isAdmin"
                   :value="order.order_status"
@@ -179,7 +159,7 @@ watch(
                   </option>
                 </select>
                 <span v-else class="rounded-full bg-primary/10 px-3 py-1.5 text-sm font-bold text-primary">
-                  {{ orderStatusLabel[order.order_status] ?? order.order_status }}
+                  {{ customerStatusLabel(order, now.getTime()) }}
                 </span>
               </div>
             </div>
@@ -197,7 +177,7 @@ watch(
               總金額 {{ formatPrice(order.total) }}
             </div>
 
-            <!-- 顧客／收件資訊：總金額下方，橫式呈現 -->
+            <!-- 顧客／收件資訊 -->
             <div class="mt-4 flex flex-wrap items-center gap-x-8 gap-y-3 rounded-lg bg-surface-container-low px-5 py-4 text-base">
               <div class="flex items-baseline gap-2">
                 <span class="text-sm font-semibold text-on-surface-variant">收件人</span>
@@ -217,14 +197,42 @@ watch(
               </div>
             </div>
 
-            <!-- 未付款：顧客可繼續前往綠界付款 -->
-            <div v-if="!isAdmin && order.payment_status === 'unpaid'" class="mt-4 flex justify-end">
+            <!-- 鑑賞期提示（顧客，received 且鑑賞期內） -->
+            <p v-if="!isAdmin && isInReviewPeriod(order, now.getTime())" class="mt-4 text-sm text-on-surface-variant">
+              7 天鑑賞期至 {{ reviewDeadline(order) }}，期滿自動完結；也可提前確認完成。
+            </p>
+
+            <!-- 動作區 -->
+            <div class="mt-4 flex flex-wrap justify-end gap-3">
+              <!-- 管理員測試：一鍵模擬物流送達簽收 → 進入鑑賞期 -->
               <Button
+                v-if="isAdmin && order.payment_status === 'paid' && ['created', 'shipping'].includes(order.order_status)"
+                variant="outline"
+                class="rounded-xl font-bold"
+                :disabled="updatingOrderId === order.id"
+                @click="updateOrderStatus(order.id, 'received')"
+              >
+                {{ updatingOrderId === order.id ? '處理中…' : '模擬送達簽收' }}
+              </Button>
+
+              <!-- 顧客：未付款可去付款 -->
+              <Button
+                v-if="!isAdmin && order.payment_status === 'unpaid'"
                 class="primary-gradient rounded-xl font-bold text-on-primary"
                 :disabled="payingOrderId === order.id"
                 @click="payOrder(order.id)"
               >
                 {{ payingOrderId === order.id ? '前往付款中…' : '去付款' }}
+              </Button>
+
+              <!-- 顧客：鑑賞期內可提前結束 → 完結 -->
+              <Button
+                v-if="!isAdmin && isInReviewPeriod(order, now.getTime())"
+                class="primary-gradient rounded-xl font-bold text-on-primary"
+                :disabled="confirmingOrderId === order.id"
+                @click="confirmComplete(order.id)"
+              >
+                {{ confirmingOrderId === order.id ? '處理中…' : '確認完成（提前結束鑑賞期）' }}
               </Button>
             </div>
           </section>
