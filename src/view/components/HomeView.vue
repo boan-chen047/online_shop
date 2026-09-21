@@ -26,24 +26,31 @@ const flashSaleItems = computed(() => {
     .slice(0, 5)
 })
 
-// 折後價：round(售價 × 折數 / 10)；無折扣時就是原售價
+// 折後價：round(售價 × 折數 / 10)
 function salePrice(price: number) {
   return Math.round((price * flashSaleDiscount.value) / 10)
 }
-const hasDiscount = computed(() => flashSaleDiscount.value < 10)
 
-// 是否在活動時間內（now ∈ [開始, 結束]）；每秒更新
+// 活動時間狀態（每秒更新）
 const now = useNow()
-const isFlashActive = computed(() => {
+const flashEnded = computed(() => {
+  const endMs = new Date(flashSaleEnd.value).getTime()
+  return Number.isFinite(endMs) && now.value.getTime() >= endMs
+})
+const saleActive = computed(() => {
   const t = now.value.getTime()
   const startMs = flashSaleStart.value ? new Date(flashSaleStart.value).getTime() : Number.NaN
-  const endMs = new Date(flashSaleEnd.value).getTime()
   const started = !Number.isFinite(startMs) || t >= startMs
-  const notEnded = !Number.isFinite(endMs) || t < endMs
-  return started && notEnded
+  return started && !flashEnded.value
 })
-// 首頁限時優惠只在「有選商品」且「活動時間內」才顯示
-const showFlashSale = computed(() => flashSaleItems.value.length > 0 && isFlashActive.value)
+// 折扣只在活動「進行中」且有設折扣時才套用（未開始/已結束都不折）
+const discountActive = computed(() => saleActive.value && flashSaleDiscount.value < 10)
+// 顯示價：活動進行中才折，否則原售價
+function displayPrice(price: number) {
+  return discountActive.value ? salePrice(price) : price
+}
+// 限時優惠區：有選商品且活動「尚未結束」就顯示（未開始也顯示，帶「即將開始」倒數）
+const showFlashSale = computed(() => flashSaleItems.value.length > 0 && !flashEnded.value)
 
 // 熱銷商品：依實際銷量排行（top_selling_products），不足 5 個用其餘上架商品補滿
 const topSellerIds = ref<string[]>([])
@@ -141,8 +148,8 @@ onMounted(async () => {
               <p class="mb-2 text-sm font-bold text-primary">{{ flashSaleItems[0].tag }}</p>
               <h3 class="mb-2 text-xl font-bold">{{ flashSaleItems[0].name }}</h3>
               <div class="flex items-center gap-3">
-                <span class="text-xl font-black text-on-surface">{{ formatPrice(salePrice(flashSaleItems[0].price)) }}</span>
-                <span v-if="hasDiscount" class="text-outline line-through text-sm">{{ formatPrice(flashSaleItems[0].price) }}</span>
+                <span class="text-xl font-black text-on-surface">{{ formatPrice(displayPrice(flashSaleItems[0].price)) }}</span>
+                <span v-if="discountActive" class="text-outline line-through text-sm">{{ formatPrice(flashSaleItems[0].price) }}</span>
               </div>
               <Button as-child class="primary-gradient mt-5 w-full translate-y-4 font-bold text-white opacity-0 transition-all duration-300 group-hover:translate-y-0 group-hover:opacity-100">
                 <RouterLink :to="`/product/${flashSaleItems[0].slug}`">查看商品</RouterLink>
@@ -161,8 +168,8 @@ onMounted(async () => {
             
             <div class="mt-3.5 flex items-center justify-between">
               <span class="flex items-baseline gap-1.5">
-                <span class="text-base font-bold text-primary">{{ formatPrice(salePrice(item.price)) }}</span>
-                <span v-if="hasDiscount" class="text-outline line-through text-xs">{{ formatPrice(item.price) }}</span>
+                <span class="text-base font-bold text-primary">{{ formatPrice(displayPrice(item.price)) }}</span>
+                <span v-if="discountActive" class="text-outline line-through text-xs">{{ formatPrice(item.price) }}</span>
               </span>
 
               <Button as-child class="primary-gradient h-8 translate-y-4 px-3.5 text-xs font-bold text-white opacity-0 transition-all duration-300 group-hover:translate-y-0 group-hover:opacity-100">
