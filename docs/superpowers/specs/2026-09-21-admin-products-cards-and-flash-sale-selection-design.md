@@ -3,7 +3,7 @@
 - 日期：2026-09-21
 - 專案：online_shop（Vue 3 + Supabase）
 - 前置：延續 [2026-09-20 後台管理統整 + 活動時間](./2026-09-20-admin-backend-and-flash-sale-time-design.md)（`site_settings.flash_sale`、AdminLayout 外殼、CountdownTimer 三態均已完成）
-- 狀態：設計已確認，待寫實作計畫
+- 狀態：已實作（分支 feature/admin-backend-and-flash-sale-time；商品卡片/搜尋/詳情頁/活動商品挑選/折扣皆完成，首頁隱藏行為已驗證；後台需管理員登入端驗）
 
 ## 一、背景與目標
 
