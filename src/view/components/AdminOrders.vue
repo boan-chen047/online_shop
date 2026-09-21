@@ -125,8 +125,8 @@ watch(
 </script>
 
 <template>
-  <div class="bg-surface text-on-surface antialiased min-h-screen font-body">
-    <main class="mx-auto max-w-[94vw] px-5 pt-10 pb-16">
+  <div class="text-on-surface antialiased font-body">
+    <main class="mx-auto max-w-[94vw] px-5 pb-16">
       <h1 class="mb-6 font-headline text-2xl font-black">{{ isAdmin ? '訂單管理' : '我的訂單' }}</h1>
 
       <div v-if="!isAuthReady" class="rounded-xl bg-surface-container-lowest p-8 text-center text-base text-on-surface-variant">

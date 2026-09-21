@@ -21,7 +21,7 @@ function itemClass(name: string) {
 <template>
   <div class="mx-auto max-w-[94vw] px-5 py-6 md:flex md:gap-6">
     <!-- 側邊導覽：手機版收成上方橫向可捲動列 -->
-    <aside class="mb-4 md:mb-0 md:w-56 md:shrink-0">
+    <aside class="mb-4 md:mb-0 md:w-56 md:shrink-0 md:sticky md:top-[88px] md:self-start">
       <p class="mb-3 px-3 text-xs font-bold uppercase tracking-widest text-outline">後台管理</p>
       <nav class="flex gap-2 overflow-x-auto md:flex-col md:gap-1">
         <RouterLink

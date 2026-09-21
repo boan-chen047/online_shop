@@ -166,8 +166,8 @@ watch(
 </script>
 
 <template>
-  <div class="bg-surface text-on-surface antialiased min-h-screen font-body">
-    <main class="mx-auto max-w-[94vw] px-5 pt-10 pb-16">
+  <div class="text-on-surface antialiased font-body">
+    <main class="pb-16">
       <div class="mb-6 flex flex-wrap items-center justify-between gap-4">
         <h1 class="font-headline text-2xl font-black">商品管理</h1>
         <div v-if="isAdmin && !isLoading && !loadError" class="flex items-center gap-2 text-sm">
