@@ -31,10 +31,11 @@
 `site_settings.flash_sale` 的 jsonb 值由 `{start, end}` 擴充為：
 
 ```json
-{ "start": "...+08:00", "end": "...+08:00", "product_ids": ["<uuid>", "..."] }
+{ "start": "...+08:00", "end": "...+08:00", "product_ids": ["<uuid>", "..."], "discount": 8 }
 ```
 
 - `product_ids` 為選中商品的 id 陣列；**缺少時一律預設為空陣列 `[]`**（向下相容既有那筆只有 start/end 的資料）。
+- `discount` 為**折數**（台灣慣例：`8` = 八折 = ×0.8，可到一位小數如 `8.5` = 八五折；`10` = 無折扣）。**缺少或不在 `(0, 10]` 範圍時一律預設 `10`（無折扣）**。折後價 = `round(售價 × discount / 10)`。
 - 因為只是 jsonb 多幾個鍵，**不需要新的資料表或 migration**；由「網站設定」儲存時一併寫回。
 
 ### 3.2 商品列表頁（改寫 `AdminProducts.vue`）
@@ -57,22 +58,23 @@
 
 ### 3.4 網站設定擴充活動商品（`AdminSettings.vue`）
 
-- 在開始/結束時間下方新增「**活動商品**」區塊：
+- 在開始/結束時間下方新增「**折扣（幾折）**」數字輸入（`8` = 八折），以及「**活動商品**」區塊：
   - 一個可搜尋的**商品勾選清單**（撈全部商品的 id/名稱/主圖/售價；搜尋比對名稱）。
   - 已勾選的即為 `product_ids`。
-- 載入時：讀 `flash_sale.product_ids`（缺則 `[]`）帶入勾選狀態。
-- 儲存時：`upsert` 的 `value` 改為 `{ start, end, product_ids }`（沿用現有結束需晚於開始的驗證）。
+- 載入時：讀 `flash_sale.product_ids`（缺則 `[]`）、`discount`（缺則 `10`）帶入。
+- 儲存時：`upsert` 的 `value` 改為 `{ start, end, product_ids, discount }`（沿用現有結束需晚於開始的驗證；折數需在 `(0, 10]`）。
 
 ### 3.5 讀取層擴充（`useSiteSettings.ts`）
 
-- `FlashSaleWindow` 增加 `productIds: string[]`。
-- `parseWindow` 解析 `product_ids`（非陣列或缺少 → `[]`）。
+- `FlashSaleWindow` 增加 `productIds: string[]` 與 `discount: number`（折數）。
+- `parseWindow` 解析 `product_ids`（非陣列或缺少 → `[]`）、`discount`（非 `(0,10]` 數字 → `10`）。
 - 保持既有防呆：日期無效仍回 `null`。
 
-### 3.6 首頁改吃 product_ids（`HomeView.vue`）
+### 3.6 首頁改吃 product_ids + 折扣即時算價（`HomeView.vue`）
 
-- `loadFlashSale()` 取得 `{ start, end, productIds }`。
+- `loadFlashSale()` 取得 `{ start, end, productIds, discount }`。
 - `flashSaleItems` 改為：`products` 中 `id ∈ productIds` 的商品，依 `productIds` 順序，取前 5 個（維持「1 大 + 4 小」版面）。
+- **折後價即時計算**：`salePrice(price) = round(price × discount / 10)`。首頁限時優惠區顯示：**折後價為主**，`discount < 10` 時原售價以刪除線並列；`discount = 10`（無折扣）時只顯示原售價、不加刪除線。取代現有讀 `product.originalPrice` 的顯示。
 - **若 `productIds` 為空或對應不到任何商品 → 整個「限時優惠」區塊（含 CountdownTimer）以 `v-if` 隱藏。**
 - 移除現有「有標籤/原價才算活動」的隱性判定。
 
