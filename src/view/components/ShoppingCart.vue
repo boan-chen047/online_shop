@@ -5,9 +5,10 @@ import { RouterLink } from 'vue-router'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Trash2, Minus, Plus, CheckCircle2 } from 'lucide-vue-next'
-import { useCart } from '@/composables/useCart'
+import { useCart, type CartItem } from '@/composables/useCart'
 import { cn } from '@/lib/utils'
 import { formatPrice } from '@/composables/useCatalog'
+import { useFlashSalePricing } from '@/composables/useSiteSettings'
 import { taiwanCities, taiwanDistricts } from '@/lib/taiwanDistricts'
 import { startEcpayPayment } from '@/lib/ecpay'
 // 引入依賴
@@ -30,7 +31,24 @@ const {
 } = useCart()
 // 購物車資料
 
-const total = computed(() => subtotal.value)
+// 限時活動折扣（與後端 create_order_from_cart 同規則）
+const { priceFor } = useFlashSalePricing()
+function lineUnit(item: CartItem) {
+  return priceFor(item.productId, item.price).display
+}
+function lineOnSale(item: CartItem) {
+  return priceFor(item.productId, item.price).onSale
+}
+function lineTotal(item: CartItem) {
+  return lineUnit(item) * item.quantity
+}
+// 折後小計（僅選取項）；折扣省下金額
+const discountedSubtotal = computed(() =>
+  cartItems.value.reduce((sum, item) => sum + (item.selected ? lineTotal(item) : 0), 0),
+)
+const flashSaleSavings = computed(() => subtotal.value - discountedSubtotal.value)
+
+const total = computed(() => discountedSubtotal.value)
 const isCheckingOut = ref(false)
 
 const isAllSelected = computed(() =>
@@ -272,7 +290,10 @@ onMounted(() => {
                       >
                     計入
                   </label>
-                  <span :class="cn('font-bold text-xl md:text-2xl', item.selected ? 'text-primary' : 'text-outline-variant')">{{ formatPrice(item.price * item.quantity) }}</span>
+                  <span class="flex flex-col items-end">
+                    <span :class="cn('font-bold text-xl md:text-2xl', item.selected ? 'text-primary' : 'text-outline-variant')">{{ formatPrice(lineTotal(item)) }}</span>
+                    <span v-if="lineOnSale(item)" class="text-xs text-outline line-through">{{ formatPrice(item.price * item.quantity) }}</span>
+                  </span>
                 </div>
               </div>
             </div>
@@ -353,9 +374,9 @@ onMounted(() => {
                 <div v-for="item in selectedCartItems" :key="item.id" class="flex items-start justify-between gap-3 text-sm">
                   <div class="min-w-0">
                     <p class="line-clamp-1 font-semibold text-on-surface">{{ item.name }}</p>
-                    <p class="mt-1 text-xs text-on-surface-variant">數量 {{ item.quantity }} · {{ formatPrice(item.price) }}</p>
+                    <p class="mt-1 text-xs text-on-surface-variant">數量 {{ item.quantity }} · {{ formatPrice(lineUnit(item)) }}</p>
                   </div>
-                  <span class="shrink-0 font-bold text-on-surface">{{ formatPrice(item.price * item.quantity) }}</span>
+                  <span class="shrink-0 font-bold text-on-surface">{{ formatPrice(lineTotal(item)) }}</span>
                 </div>
               </div>
               <div v-else class="rounded-lg bg-surface-container-low p-5 text-sm text-on-surface-variant">
@@ -364,6 +385,10 @@ onMounted(() => {
               <div class="flex justify-between text-on-surface-variant">
                 <span>小計 ({{ selectedItemCount }} 件)</span>
                 <span class="font-medium text-on-surface">{{ formatPrice(subtotal) }}</span>
+              </div>
+              <div v-if="flashSaleSavings > 0" class="flex justify-between text-primary">
+                <span>限時活動折扣</span>
+                <span class="font-medium">-{{ formatPrice(flashSaleSavings) }}</span>
               </div>
             </div>
 
