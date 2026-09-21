@@ -144,7 +144,7 @@ onMounted(loadData)
             class="group overflow-hidden rounded-xl bg-surface-container-lowest shadow-sm transition-all hover:-translate-y-1 hover:shadow-lg"
           >
             <div class="relative aspect-square bg-surface-container-low">
-              <img v-if="product.image" :src="product.image" :alt="product.name" class="h-full w-full object-cover" />
+              <img v-if="product.image" :src="product.image" :alt="product.name" loading="lazy" class="h-full w-full object-cover" />
               <div v-else class="flex h-full w-full items-center justify-center text-xs text-outline">無圖片</div>
               <span v-if="activeIds.has(product.id)" class="absolute left-2 top-2 rounded-full bg-primary px-2 py-0.5 text-[11px] font-bold text-on-primary">活動中</span>
             </div>
