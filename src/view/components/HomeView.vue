@@ -186,12 +186,31 @@ onMounted(async () => {
           <p class="text-sm text-outline">大家都在買，人氣精選推薦。</p>
         </div>
 
-        <div class="grid grid-cols-2 gap-5 md:grid-cols-3 lg:grid-cols-5">
-          <Card v-for="item in bestSellerItems" :key="item.id" class="group flex flex-col justify-between border-none bg-surface-container-lowest p-3.5 shadow-sm transition-all hover:-translate-y-1">
+        <div class="grid grid-cols-1 gap-5 md:grid-cols-4">
+          <!-- #1 大圖 -->
+          <Card class="md:col-span-2 md:row-span-2 bg-surface-container-lowest border-none overflow-hidden group hover:shadow-2xl transition-all duration-500 relative">
+            <div class="h-full aspect-square md:aspect-auto">
+              <img :alt="bestSellerItems[0].name" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" :src="bestSellerItems[0].image"/>
+            </div>
+            <div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-white via-white/90 to-transparent p-7">
+              <p class="mb-2 text-sm font-bold text-primary">熱銷 #1</p>
+              <h3 class="mb-2 text-xl font-bold">{{ bestSellerItems[0].name }}</h3>
+              <div class="flex items-center gap-3">
+                <span class="text-xl font-black text-on-surface">{{ formatPrice(bestSellerItems[0].price) }}</span>
+                <span v-if="bestSellerItems[0].originalPrice" class="text-outline line-through text-sm">{{ formatPrice(bestSellerItems[0].originalPrice) }}</span>
+              </div>
+              <Button as-child class="primary-gradient mt-5 w-full translate-y-4 font-bold text-white opacity-0 transition-all duration-300 group-hover:translate-y-0 group-hover:opacity-100">
+                <RouterLink :to="`/product/${bestSellerItems[0].slug}`">查看商品</RouterLink>
+              </Button>
+            </div>
+          </Card>
+          <!-- #2~#5 四小圖 -->
+          <Card v-for="(item, index) in bestSellerItems.slice(1)" :key="item.id" class="group flex flex-col justify-between border-none bg-surface-container-lowest p-3.5 shadow-sm transition-all hover:-translate-y-1">
             <div>
               <div class="mb-3.5 aspect-square overflow-hidden rounded-lg bg-surface-container-low">
                 <img :alt="item.name" class="w-full h-full object-cover mix-blend-multiply" :src="item.image"/>
               </div>
+              <p class="mb-1 text-xs font-bold text-primary">熱銷 #{{ index + 2 }}</p>
               <h4 class="font-bold text-on-surface truncate">{{ item.name }}</h4>
             </div>
 
