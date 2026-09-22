@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
-import { useRoute, RouterLink } from 'vue-router'
+import { useRoute, useRouter, RouterLink } from 'vue-router'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { useAuth } from '@/composables/useAuth'
@@ -10,6 +10,7 @@ import { type ProductImage, loadImages, uploadImages, setPrimary, deleteImage } 
 interface Category { id: string; name: string }
 
 const route = useRoute()
+const router = useRouter()
 const { isAuthReady, isAdmin } = useAuth()
 
 const productId = String(route.params.id ?? '')
@@ -199,6 +200,51 @@ async function onDeleteImage(image: ProductImage) {
   imageBusy.value = false
 }
 
+const confirmingDelete = ref(false)
+const deleting = ref(false)
+const deleteError = ref('')
+
+async function deleteProduct() {
+  deleting.value = true
+  deleteError.value = ''
+  try {
+    // 1. 從活動商品清單移除此商品（保留 start/end/discount）
+    const { data: ss } = await supabase
+      .from('site_settings')
+      .select('value')
+      .eq('key', 'flash_sale')
+      .maybeSingle()
+    const value = (ss as { value?: { product_ids?: string[] } } | null)?.value
+    if (value && Array.isArray(value.product_ids) && value.product_ids.includes(productId)) {
+      await supabase
+        .from('site_settings')
+        .update({ value: { ...value, product_ids: value.product_ids.filter((id) => id !== productId) } })
+        .eq('key', 'flash_sale')
+    }
+
+    // 2. 刪商品（cascade 連帶刪 images/specs/inventory/cart_items 列；訂單歷史 set null 保留快照）
+    const { error } = await supabase.from('products').delete().eq('id', productId)
+    if (error) {
+      deleteError.value = error.message
+      deleting.value = false
+      return
+    }
+
+    // 3. 清 Storage 該商品資料夾的圖檔（DB 列已被 cascade 刪，實體檔要自己清）
+    const { data: files } = await supabase.storage.from('product-images').list(productId)
+    if (files && files.length) {
+      await supabase.storage
+        .from('product-images')
+        .remove(files.map((file) => `${productId}/${file.name}`))
+    }
+
+    void router.push({ name: 'AdminProducts' })
+  } catch (error) {
+    deleteError.value = error instanceof Error ? error.message : '刪除失敗。'
+    deleting.value = false
+  }
+}
+
 onMounted(async () => {
   await loadData()
   if (!notFound.value) {
@@ -321,5 +367,41 @@ onMounted(async () => {
         </div>
       </div>
     </section>
+
+    <!-- 危險操作：刪除商品 -->
+    <div v-if="isAuthReady && isAdmin && !isLoading && !loadError && !notFound" class="mt-6 rounded-xl border border-red-300 bg-red-50/50 p-5">
+      <h3 class="font-bold text-red-700">危險操作</h3>
+      <p class="mt-1 text-sm text-on-surface-variant">刪除後無法復原（商品、圖片、庫存都會移除；歷史訂單仍保留紀錄）。</p>
+      <p v-if="deleteError" class="mt-2 text-sm font-bold text-red-600">{{ deleteError }}</p>
+      <div class="mt-3">
+        <button
+          v-if="!confirmingDelete"
+          type="button"
+          class="rounded-lg border border-red-500 px-4 py-2 text-sm font-bold text-red-600 hover:bg-red-50"
+          @click="confirmingDelete = true"
+        >
+          刪除商品
+        </button>
+        <div v-else class="flex flex-wrap items-center gap-3">
+          <span class="text-sm font-bold text-red-700">確定刪除？此動作無法復原。</span>
+          <button
+            type="button"
+            class="rounded-lg bg-red-600 px-4 py-2 text-sm font-bold text-white hover:bg-red-700 disabled:opacity-50"
+            :disabled="deleting"
+            @click="deleteProduct"
+          >
+            {{ deleting ? '刪除中…' : '確定刪除' }}
+          </button>
+          <button
+            type="button"
+            class="rounded-lg px-4 py-2 text-sm font-bold text-on-surface-variant hover:bg-surface-container-low"
+            :disabled="deleting"
+            @click="confirmingDelete = false"
+          >
+            取消
+          </button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
