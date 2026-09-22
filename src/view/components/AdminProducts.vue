@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { useAuth } from '@/composables/useAuth'
 import { formatPrice } from '@/composables/useCatalog'
-import { loadFlashSale } from '@/composables/useSiteSettings'
+import { useFlashSalePricing } from '@/composables/useSiteSettings'
 import { supabase } from '@/lib/supabase'
 
 interface ProductCard {
@@ -22,7 +22,8 @@ const { isAuthReady, isAdmin } = useAuth()
 const router = useRouter()
 
 const products = ref<ProductCard[]>([])
-const activeIds = ref<Set<string>>(new Set())
+// 活動中商品（僅在活動時間內才有值；非活動時間自動清空）
+const { activeIds } = useFlashSalePricing()
 const isLoading = ref(false)
 const loadError = ref('')
 const isCreating = ref(false)
@@ -128,10 +129,6 @@ async function loadData() {
       image: primary?.image_url ?? null,
     }
   })
-
-  // 標記活動中商品（來自 site_settings.flash_sale.product_ids）
-  const flashSale = await loadFlashSale({ force: true })
-  activeIds.value = new Set(flashSale?.productIds ?? [])
 
   isLoading.value = false
 }
