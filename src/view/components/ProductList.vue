@@ -20,7 +20,8 @@ const { categories, products, isLoading, errorMessage, loadCatalog } = useCatalo
 const { priceFor } = useFlashSalePricing()
 
 onMounted(() => {
-  void loadCatalog()
+  // force 重抓：確保商品狀態（上架/下架）變更後，客人進商品頁即時反映，不必整頁重新整理。
+  void loadCatalog({ force: true })
 })
 
 const categoryNames = computed(() =>
