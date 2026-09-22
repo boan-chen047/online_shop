@@ -49,10 +49,10 @@ jobs:
 
       # Vercel CLI 自動讀取 VERCEL_TOKEN / VERCEL_ORG_ID / VERCEL_PROJECT_ID 環境變數
       - name: Pull Vercel project settings (production)
-        run: vercel pull --yes --environment=production
+        run: vercel pull --yes --environment=production --scope=boan-s-projects
 
       - name: Build with Vercel
         run: vercel build --prod
 
       - name: Deploy prebuilt output to production
-        run: vercel deploy --prebuilt --prod
+        run: vercel deploy --prebuilt --prod --scope=boan-s-projects
