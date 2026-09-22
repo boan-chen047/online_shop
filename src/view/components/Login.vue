@@ -40,7 +40,7 @@ const authMode = ref<'sign-in' | 'sign-up'>('sign-in')
 const email = ref('')
 const password = ref('')
 
-const submitLabel = computed(() => authMode.value === 'sign-in' ? 'Sign in' : 'Create account')
+const submitLabel = computed(() => authMode.value === 'sign-in' ? '登入' : '建立帳號')
 
 async function handleSubmit() {
   if (authMode.value === 'sign-in') {
@@ -56,12 +56,12 @@ async function handleSubmit() {
   <div class="min-h-[calc(100vh-72px)] bg-surface px-5 py-10 text-on-surface">
     <main class="mx-auto max-w-xl rounded-2xl bg-surface-container-lowest p-6 shadow-sm sm:p-8">
         <div class="mb-6">
-          <h2 class="font-headline text-3xl font-black">Sign in</h2>
-          <p class="mt-2 text-sm text-on-surface-variant">Use Supabase Authentication to continue.</p>
+          <h2 class="font-headline text-3xl font-black">登入</h2>
+          <p class="mt-2 text-sm text-on-surface-variant">登入帳號以繼續購物。</p>
         </div>
 
         <div v-if="!isAuthReady" class="rounded-xl bg-surface-container-low p-6 text-center">
-          <p class="font-bold text-on-surface">Checking sign-in status...</p>
+          <p class="font-bold text-on-surface">確認登入狀態中…</p>
         </div>
 
         <div v-else-if="currentUser" class="rounded-2xl bg-surface-container-low p-6 text-center">
@@ -76,10 +76,10 @@ async function handleSubmit() {
           <p class="mt-1 text-sm text-on-surface-variant">{{ userProfile.email }}</p>
           <div class="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-2">
             <Button as-child class="primary-gradient rounded-xl font-bold text-on-primary">
-              <RouterLink to="/userfile">View Profile</RouterLink>
+              <RouterLink to="/userfile">會員中心</RouterLink>
             </Button>
             <Button variant="outline" class="rounded-xl bg-surface-container-lowest font-bold" @click="signOutUser">
-              Sign out
+              登出
             </Button>
           </div>
         </div>
@@ -93,7 +93,7 @@ async function handleSubmit() {
                 :class="authMode === 'sign-in' ? 'bg-surface-container-lowest text-primary shadow-sm' : 'text-on-surface-variant'"
                 @click="authMode = 'sign-in'"
               >
-                Sign in
+                登入
               </button>
               <button
                 type="button"
@@ -101,31 +101,31 @@ async function handleSubmit() {
                 :class="authMode === 'sign-up' ? 'bg-surface-container-lowest text-primary shadow-sm' : 'text-on-surface-variant'"
                 @click="authMode = 'sign-up'"
               >
-                Sign up
+                註冊
               </button>
             </div>
 
             <label class="block">
-              <span class="mb-2 block text-sm font-bold text-on-surface">Email</span>
+              <span class="mb-2 block text-sm font-bold text-on-surface">電子郵件</span>
               <Input v-model="email" type="email" autocomplete="email" required placeholder="you@example.com" class="h-12 rounded-xl bg-surface-container-lowest" />
             </label>
 
             <label class="block">
-              <span class="mb-2 block text-sm font-bold text-on-surface">Password</span>
+              <span class="mb-2 block text-sm font-bold text-on-surface">密碼</span>
               <Input
                 v-model="password"
                 type="password"
                 :autocomplete="authMode === 'sign-in' ? 'current-password' : 'new-password'"
                 required
                 minlength="6"
-                placeholder="At least 6 characters"
+                placeholder="至少 6 個字元"
                 class="h-12 rounded-xl bg-surface-container-lowest"
               />
             </label>
 
             <Button class="primary-gradient h-12 w-full rounded-xl font-bold text-on-primary" :disabled="isSigningIn">
               <LogIn class="mr-2 size-4" />
-              {{ isSigningIn ? 'Please wait...' : submitLabel }}
+              {{ isSigningIn ? '請稍候…' : submitLabel }}
             </Button>
 
             <Button
@@ -135,7 +135,7 @@ async function handleSubmit() {
               :disabled="isSigningIn"
               @click="signInWithGoogle"
             >
-              Continue with Google
+              使用 Google 登入
             </Button>
 
             <p v-if="authNotice" class="rounded-lg bg-primary/10 px-4 py-3 text-sm font-medium text-primary">
