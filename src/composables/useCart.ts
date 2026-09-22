@@ -1,6 +1,7 @@
 import { computed, ref } from 'vue'
 import { isSupabaseConfigured, supabase } from '@/lib/supabase'
 import type { CatalogProduct } from '@/composables/useCatalog'
+import { trackAddToCart } from '@/lib/analytics'
 
 export interface CartItem {
   id: string
@@ -248,6 +249,15 @@ async function addToCart(product: CatalogProduct, quantity = 1) {
 
     hasLoadedCart = false
     void loadCart({ force: true })
+
+    // GA4：加入購物車事件
+    trackAddToCart({
+      id: product.id,
+      name: product.name,
+      price: product.price,
+      category: product.categoryName,
+      quantity: normalizedQuantity,
+    })
   } catch (error) {
     cartError.value = getSupabaseErrorMessage(error, '加入購物車失敗。')
     throw error

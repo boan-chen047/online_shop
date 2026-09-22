@@ -3,6 +3,7 @@ import { createRouter, createWebHistory } from 'vue-router'
 import HomeView from '../view/components/HomeView.vue'
 import { ensureAuthReady, useAuth } from '@/composables/useAuth'
 import { supabase } from '@/lib/supabase'
+import { trackPageView } from '@/lib/analytics'
 // 導入依賴
 
 // 路由配置表
@@ -134,6 +135,11 @@ router.beforeEach(async (to) => {
   }
 
   return true
+})
+
+// GA4：SPA 換頁不會重新整理，於每次導航完成後手動送出 page_view
+router.afterEach((to) => {
+  trackPageView(to.fullPath)
 })
 
 export default router

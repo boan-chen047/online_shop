@@ -11,6 +11,7 @@ import { formatPrice } from '@/composables/useCatalog'
 import { useFlashSalePricing } from '@/composables/useSiteSettings'
 import { taiwanCities, taiwanDistricts } from '@/lib/taiwanDistricts'
 import { startEcpayPayment } from '@/lib/ecpay'
+import { trackBeginCheckout } from '@/lib/analytics'
 // 引入依賴
 
 // 購物車資料
@@ -106,6 +107,18 @@ function handleProceedToInfo() {
     window.alert('請先勾選要結帳的商品。')
     return
   }
+
+  // GA4：開始結帳事件（以折後小計與已勾選商品）
+  trackBeginCheckout(
+    total.value,
+    selectedCartItems.value.map((item) => ({
+      id: item.productId,
+      name: item.name,
+      price: lineUnit(item),
+      category: item.categoryName,
+      quantity: item.quantity,
+    })),
+  )
 
   step.value = 'info'
 }

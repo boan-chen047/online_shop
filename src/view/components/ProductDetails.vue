@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge'
 import { fetchProductByIdentifier, formatPrice, type CatalogProduct } from '@/composables/useCatalog'
 import { useFlashSalePricing } from '@/composables/useSiteSettings'
 import { useCart } from '@/composables/useCart'
+import { trackViewItem } from '@/lib/analytics'
 import { ChevronRight, Minus, Plus, ShoppingBag } from 'lucide-vue-next'
 import Autoplay from 'embla-carousel-autoplay'
 import {
@@ -60,6 +61,14 @@ async function loadProduct() {
 
     if (!product.value) {
       errorMessage.value = '這項商品目前不存在或尚未上架。'
+    } else {
+      // GA4：瀏覽商品事件
+      trackViewItem({
+        id: product.value.id,
+        name: product.value.name,
+        price: product.value.price,
+        category: product.value.categoryName,
+      })
     }
   } catch (error) {
     errorMessage.value = error instanceof Error ? error.message : '商品資料載入失敗。'
