@@ -3,6 +3,10 @@ import './style.css'
 import App from './App.vue'
 import router from './router/index'
 import { SpeedInsights } from "@vercel/speed-insights/vue"
+import { initAnalytics } from '@/lib/analytics'
+
+initAnalytics()
+
 const app = createApp(App)
 app.use(router)
 app.component('SpeedInsights', SpeedInsights)

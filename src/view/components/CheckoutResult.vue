@@ -4,6 +4,7 @@ import { RouterLink, useRoute, useRouter } from 'vue-router'
 import { Button } from '@/components/ui/button'
 import { CheckCircle2, Clock, XCircle } from 'lucide-vue-next'
 import { supabase } from '@/lib/supabase'
+import { trackPurchase } from '@/lib/analytics'
 
 const route = useRoute()
 const router = useRouter()
@@ -52,6 +53,16 @@ async function checkStatus() {
 
   if (data.payment_status === 'paid') {
     state.value = 'paid'
+    // GA4：完成付款事件。用 sessionStorage 去重，避免重整同一筆訂單重複計算。
+    try {
+      const key = `ga_purchase_${orderId}`
+      if (!sessionStorage.getItem(key)) {
+        trackPurchase(orderId, Number(data.total))
+        sessionStorage.setItem(key, '1')
+      }
+    } catch {
+      trackPurchase(orderId, Number(data.total))
+    }
     startRedirectCountdown()
     return
   }
