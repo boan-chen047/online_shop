@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { useAuth } from '@/composables/useAuth'
 import { supabase } from '@/lib/supabase'
+import { type ProductImage, loadImages, uploadImages, setPrimary, deleteImage } from '@/composables/useProductImages'
 
 interface Category { id: string; name: string }
 
@@ -144,7 +145,66 @@ async function save() {
   saving.value = false
 }
 
-onMounted(loadData)
+const images = ref<ProductImage[]>([])
+const imageBusy = ref(false)
+const imageError = ref('')
+
+async function refreshImages() {
+  try {
+    images.value = await loadImages(productId)
+  } catch (error) {
+    imageError.value = error instanceof Error ? error.message : '圖片載入失敗。'
+  }
+}
+
+async function onUpload(event: Event) {
+  const input = event.target as HTMLInputElement
+  const files = input.files ? Array.from(input.files) : []
+  if (!files.length) {
+    return
+  }
+  imageBusy.value = true
+  imageError.value = ''
+  try {
+    await uploadImages(productId, files, form.value.name)
+    await refreshImages()
+  } catch (error) {
+    imageError.value = error instanceof Error ? error.message : '圖片上傳失敗。'
+  }
+  imageBusy.value = false
+  input.value = ''
+}
+
+async function onSetPrimary(imageId: string) {
+  imageBusy.value = true
+  imageError.value = ''
+  try {
+    await setPrimary(productId, imageId)
+    await refreshImages()
+  } catch (error) {
+    imageError.value = error instanceof Error ? error.message : '設定主圖失敗。'
+  }
+  imageBusy.value = false
+}
+
+async function onDeleteImage(image: ProductImage) {
+  imageBusy.value = true
+  imageError.value = ''
+  try {
+    await deleteImage(productId, image)
+    await refreshImages()
+  } catch (error) {
+    imageError.value = error instanceof Error ? error.message : '刪除圖片失敗。'
+  }
+  imageBusy.value = false
+}
+
+onMounted(async () => {
+  await loadData()
+  if (!notFound.value) {
+    await refreshImages()
+  }
+})
 </script>
 
 <template>
@@ -215,6 +275,50 @@ onMounted(loadData)
         <Button :disabled="saving" class="primary-gradient rounded-xl px-6 font-bold text-on-primary hover:opacity-80" @click="save">
           {{ saving ? '儲存中…' : '儲存' }}
         </Button>
+      </div>
+
+      <div class="mt-8 border-t border-outline-variant/50 pt-6">
+        <div class="mb-3 flex items-center justify-between">
+          <h2 class="font-bold text-on-surface">商品圖片</h2>
+          <label
+            class="cursor-pointer rounded-lg border border-outline-variant px-3 py-1.5 text-sm font-bold text-on-surface hover:bg-surface-container-low"
+            :class="{ 'pointer-events-none opacity-60': imageBusy }"
+          >
+            {{ imageBusy ? '處理中…' : '＋ 上傳圖片' }}
+            <input type="file" accept="image/*" multiple class="hidden" :disabled="imageBusy" @change="onUpload" />
+          </label>
+        </div>
+        <p v-if="imageError" class="mb-3 text-sm font-bold text-red-600">{{ imageError }}</p>
+
+        <div v-if="!images.length" class="rounded-lg bg-surface-container-low p-6 text-center text-sm text-outline">
+          尚無圖片，點右上角「上傳圖片」新增。
+        </div>
+        <div v-else class="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
+          <div v-for="image in images" :key="image.id" class="overflow-hidden rounded-lg border border-outline-variant/60 bg-surface-container-lowest">
+            <div class="relative aspect-square bg-surface-container-low">
+              <img :src="image.image_url" :alt="image.alt ?? ''" class="h-full w-full object-cover" />
+              <span v-if="image.is_primary" class="absolute left-1.5 top-1.5 rounded-full bg-primary px-2 py-0.5 text-[11px] font-bold text-on-primary">主圖</span>
+            </div>
+            <div class="flex items-center justify-between gap-1 p-2">
+              <button
+                type="button"
+                class="text-xs font-bold text-primary disabled:opacity-40"
+                :disabled="imageBusy || image.is_primary"
+                @click="onSetPrimary(image.id)"
+              >
+                設為主圖
+              </button>
+              <button
+                type="button"
+                class="text-xs font-bold text-red-600 disabled:opacity-40"
+                :disabled="imageBusy"
+                @click="onDeleteImage(image)"
+              >
+                刪除
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
     </section>
   </div>
