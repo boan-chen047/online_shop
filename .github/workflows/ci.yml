@@ -29,3 +29,30 @@ jobs:
       # pnpm build = vue-tsc -b（型別檢查）+ vite build（建置）
       - name: Type-check and build
         run: pnpm build
+
+  # build 綠燈後才部署正式環境（Vercel 對 master 的自動部署已於 vercel.json 關閉，避免重複）
+  deploy:
+    name: Deploy production (Vercel)
+    needs: build
+    if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+    runs-on: ubuntu-latest
+    env:
+      VERCEL_ORG_ID: team_tUkwq8toTCIbHVJzhVEhPMX4
+      VERCEL_PROJECT_ID: prj_FSkxWKcjIF9T2nyLY41yCRZAhKFd
+      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Vercel CLI
+        run: npm install --global vercel@latest
+
+      # Vercel CLI 自動讀取 VERCEL_TOKEN / VERCEL_ORG_ID / VERCEL_PROJECT_ID 環境變數
+      - name: Pull Vercel project settings (production)
+        run: vercel pull --yes --environment=production
+
+      - name: Build with Vercel
+        run: vercel build --prod
+
+      - name: Deploy prebuilt output to production
+        run: vercel deploy --prebuilt --prod
