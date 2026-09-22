@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { Card, CardContent } from '@/components/ui/card'
 import { useRouter } from 'vue-router'
 import { Button } from '@/components/ui/button'
-import { newsItems } from '@/data/news'
+import { useNews } from '@/composables/useNews'
 import {
   Pagination,
   PaginationContent,
@@ -14,16 +14,23 @@ import {
 } from '@/components/ui/pagination'
 
 const router = useRouter()
+const { newsItems, loadNews } = useNews()
+const isLoading = ref(true)
 
 // 分頁邏輯設定
 const currentPage = ref(1)
 const itemsPerPage = 5
-const totalItems = computed(() => newsItems.length)
+const totalItems = computed(() => newsItems.value.length)
 
 const paginatedNews = computed(() => {
   const start = (currentPage.value - 1) * itemsPerPage
   const end = start + itemsPerPage
-  return newsItems.slice(start, end)
+  return newsItems.value.slice(start, end)
+})
+
+onMounted(async () => {
+  await loadNews()
+  isLoading.value = false
 })
 </script>
 
@@ -31,17 +38,27 @@ const paginatedNews = computed(() => {
   <div class="relative w-full h-full bg-surface">
     <!-- Page Title -->
     <section class="mx-auto max-w-[94vw] px-5 pt-24 pb-12">
-      <h1 class="font-display-xl text-4xl md:text-5xl font-extrabold text-on-surface mb-2">News</h1>
+      <h1 class="font-display-xl text-4xl md:text-5xl font-extrabold text-on-surface mb-2">最新消息</h1>
     </section>
 
     <!-- News List Section -->
     <section class="mx-auto max-w-[94vw] px-5 pb-16">
       <div class="flex items-center justify-between mb-8 border-b border-outline-variant/30 pb-4">
-        <h2 class="font-headline-lg text-3xl font-bold text-on-surface">Latest</h2>
+        <h2 class="font-headline-lg text-3xl font-bold text-on-surface">所有消息</h2>
+      </div>
+
+      <!-- 載入中 -->
+      <div v-if="isLoading" class="flex flex-col gap-6">
+        <div v-for="n in 3" :key="n" class="h-40 animate-pulse rounded-2xl bg-surface-container-lowest" />
+      </div>
+
+      <!-- 沒有消息 -->
+      <div v-else-if="!newsItems.length" class="rounded-2xl bg-surface-container-lowest p-12 text-center text-on-surface-variant">
+        目前尚無消息，敬請期待。
       </div>
 
       <!-- Card List Layout -->
-      <div class="flex flex-col gap-6">
+      <div v-else class="flex flex-col gap-6">
         <Card 
           v-for="item in paginatedNews" 
           :key="item.id"
@@ -75,7 +92,7 @@ const paginatedNews = computed(() => {
       </div>
 
       <!-- Pagination Component -->
-      <div class="mt-12 flex justify-center">
+      <div v-if="!isLoading && totalItems > itemsPerPage" class="mt-12 flex justify-center">
         <!-- items-per-page 必須設定為 5，Shadcn 才能正確計算總頁數 -->
         <Pagination 
           v-model:page="currentPage" 
