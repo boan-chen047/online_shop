@@ -1,9 +1,4 @@
 {
-  "git": {
-    "deploymentEnabled": {
-      "master": false
-    }
-  },
   "rewrites": [
     {
       "source": "/(.*)",
