@@ -7,11 +7,18 @@ import { fetchProductByIdentifier, formatPrice, type CatalogProduct } from '@/co
 import { useFlashSalePricing } from '@/composables/useSiteSettings'
 import { useCart } from '@/composables/useCart'
 import { ChevronRight, Minus, Plus, ShoppingBag } from 'lucide-vue-next'
+import Autoplay from 'embla-carousel-autoplay'
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from '@/components/ui/carousel'
 
 const route = useRoute()
 const router = useRouter()
 const quantity = ref(1)
-const selectedImage = ref('')
 const product = ref<CatalogProduct | null>(null)
 const isLoading = ref(false)
 const isAddingToCart = ref(false)
@@ -25,9 +32,14 @@ const priceInfo = computed(() =>
 )
 const discountPercent = computed(() => priceInfo.value?.discountPercent ?? 0)
 
-const galleryImages = computed(() =>
-  product.value?.images.length ? product.value.images : [],
-)
+// 輪播用的圖片網址（主圖優先；沒有圖時用佔位主圖）
+const carouselImages = computed<string[]>(() => {
+  const list = product.value?.images ?? []
+  if (list.length) {
+    return list.map((image) => image.imageUrl)
+  }
+  return product.value?.image ? [product.value.image] : []
+})
 
 const isSoldOut = computed(() => Boolean(product.value) && !product.value?.inStock)
 const canIncrease = computed(() => Boolean(product.value) && quantity.value < (product.value?.stock ?? 0))
@@ -45,7 +57,6 @@ async function loadProduct() {
 
   try {
     product.value = await fetchProductByIdentifier(identifier)
-    selectedImage.value = product.value?.image ?? ''
 
     if (!product.value) {
       errorMessage.value = '這項商品目前不存在或尚未上架。'
@@ -117,25 +128,26 @@ watch(
       <template v-else-if="product">
         <div class="mb-12 grid grid-cols-1 gap-8 lg:grid-cols-[minmax(0,1.1fr)_minmax(360px,0.9fr)] lg:items-stretch">
           <div class="flex flex-col gap-4">
-            <div class="relative aspect-[4/3] overflow-hidden rounded-xl bg-surface-container-lowest">
-              <img :alt="product.name" class="w-full h-full object-cover" :src="selectedImage || product.image"/>
-              <div v-if="product.tag" class="absolute top-4 left-4 bg-primary text-on-primary px-3 py-1 rounded-full text-[10px] font-bold tracking-widest">
-                {{ product.tag }}
-              </div>
-            </div>
-
-            <div v-if="galleryImages.length > 1" class="flex gap-4 overflow-x-auto no-scrollbar">
-              <button
-                v-for="image in galleryImages"
-                :key="image.id"
-                type="button"
-                class="h-24 w-24 shrink-0 overflow-hidden rounded-lg border-2 transition-colors"
-                :class="selectedImage === image.imageUrl ? 'border-primary' : 'border-transparent hover:border-outline-variant'"
-                @click="selectedImage = image.imageUrl"
-              >
-                <img :alt="image.alt" class="h-full w-full object-cover" :src="image.imageUrl">
-              </button>
-            </div>
+            <Carousel
+              class="relative w-full"
+              :opts="{ loop: true }"
+              :plugins="[Autoplay({ delay: 3500, stopOnMouseEnter: true, stopOnInteraction: false })]"
+            >
+              <CarouselContent>
+                <CarouselItem v-for="(url, index) in carouselImages" :key="index">
+                  <div class="relative aspect-[4/3] overflow-hidden rounded-xl bg-surface-container-lowest">
+                    <img :alt="product.name" class="w-full h-full object-cover" :src="url" />
+                    <div v-if="product.tag && index === 0" class="absolute top-4 left-4 bg-primary text-on-primary px-3 py-1 rounded-full text-[10px] font-bold tracking-widest">
+                      {{ product.tag }}
+                    </div>
+                  </div>
+                </CarouselItem>
+              </CarouselContent>
+              <template v-if="carouselImages.length > 1">
+                <CarouselPrevious class="left-3" />
+                <CarouselNext class="right-3" />
+              </template>
+            </Carousel>
           </div>
 
           <div class="flex flex-col justify-center rounded-xl border border-outline-variant/20 bg-surface-container-lowest p-6 shadow-sm md:p-8">
