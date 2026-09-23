@@ -18,6 +18,7 @@ const {
   signInWithGoogle,
   signUpWithEmail,
   signOutUser,
+  sendPasswordReset,
 } = useAuth()
 
 const route = useRoute()
@@ -36,7 +37,7 @@ watch(currentUser, (user) => {
   }
 }, { immediate: true })
 
-const authMode = ref<'sign-in' | 'sign-up'>('sign-in')
+const authMode = ref<'sign-in' | 'sign-up' | 'reset'>('sign-in')
 const email = ref('')
 const password = ref('')
 const rememberMe = ref(false)
@@ -69,9 +70,18 @@ function persistRememberedEmail() {
   }
 }
 
-const submitLabel = computed(() => authMode.value === 'sign-in' ? '登入' : '建立帳號')
+const submitLabel = computed(() => {
+  if (authMode.value === 'sign-up') return '建立帳號'
+  if (authMode.value === 'reset') return '寄送重設連結'
+  return '登入'
+})
 
 async function handleSubmit() {
+  if (authMode.value === 'reset') {
+    await sendPasswordReset(email.value)
+    return
+  }
+
   persistRememberedEmail()
 
   if (authMode.value === 'sign-in') {
@@ -80,6 +90,13 @@ async function handleSubmit() {
   }
 
   await signUpWithEmail(email.value, password.value)
+}
+
+// 切換模式時清掉上一個模式殘留的提示訊息
+function setMode(mode: 'sign-in' | 'sign-up' | 'reset') {
+  authMode.value = mode
+  authError.value = ''
+  authNotice.value = ''
 }
 </script>
 
@@ -117,12 +134,12 @@ async function handleSubmit() {
 
         <div v-else>
           <form class="space-y-4" @submit.prevent="handleSubmit">
-            <div class="grid grid-cols-2 rounded-xl bg-surface-container-low p-1">
+            <div v-if="authMode !== 'reset'" class="grid grid-cols-2 rounded-xl bg-surface-container-low p-1">
               <button
                 type="button"
                 class="rounded-lg px-3 py-2 text-sm font-bold transition-colors"
                 :class="authMode === 'sign-in' ? 'bg-surface-container-lowest text-primary shadow-sm' : 'text-on-surface-variant'"
-                @click="authMode = 'sign-in'"
+                @click="setMode('sign-in')"
               >
                 登入
               </button>
@@ -130,18 +147,22 @@ async function handleSubmit() {
                 type="button"
                 class="rounded-lg px-3 py-2 text-sm font-bold transition-colors"
                 :class="authMode === 'sign-up' ? 'bg-surface-container-lowest text-primary shadow-sm' : 'text-on-surface-variant'"
-                @click="authMode = 'sign-up'"
+                @click="setMode('sign-up')"
               >
                 註冊
               </button>
             </div>
+
+            <p v-if="authMode === 'reset'" class="rounded-xl bg-surface-container-low px-4 py-3 text-sm text-on-surface-variant">
+              輸入註冊時的電子郵件，我們會寄一封重設密碼的連結給你。
+            </p>
 
             <label class="block">
               <span class="mb-2 block text-sm font-bold text-on-surface">電子郵件</span>
               <Input v-model="email" type="email" autocomplete="email" required placeholder="you@example.com" class="h-12 rounded-xl bg-surface-container-lowest" />
             </label>
 
-            <label class="block">
+            <label v-if="authMode !== 'reset'" class="block">
               <span class="mb-2 block text-sm font-bold text-on-surface">密碼</span>
               <Input
                 v-model="password"
@@ -154,10 +175,15 @@ async function handleSubmit() {
               />
             </label>
 
-            <label v-if="authMode === 'sign-in'" class="flex items-center gap-2 text-sm font-medium text-on-surface-variant">
-              <input v-model="rememberMe" type="checkbox" class="size-4 rounded border-outline-variant accent-primary" />
-              記住我的帳號（下次自動帶入電子郵件）
-            </label>
+            <div v-if="authMode === 'sign-in'" class="flex items-center justify-between gap-3">
+              <label class="flex items-center gap-2 text-sm font-medium text-on-surface-variant">
+                <input v-model="rememberMe" type="checkbox" class="size-4 rounded border-outline-variant accent-primary" />
+                記住我的帳號
+              </label>
+              <button type="button" class="text-sm font-bold text-primary hover:underline" @click="setMode('reset')">
+                忘記密碼？
+              </button>
+            </div>
 
             <Button class="primary-gradient h-12 w-full rounded-xl font-bold text-on-primary" :disabled="isSigningIn">
               <LogIn class="mr-2 size-4" />
@@ -165,6 +191,7 @@ async function handleSubmit() {
             </Button>
 
             <Button
+              v-if="authMode !== 'reset'"
               type="button"
               variant="outline"
               class="h-12 w-full rounded-xl bg-surface-container-lowest font-bold"
@@ -173,6 +200,15 @@ async function handleSubmit() {
             >
               使用 Google 登入
             </Button>
+
+            <button
+              v-if="authMode === 'reset'"
+              type="button"
+              class="w-full text-center text-sm font-bold text-on-surface-variant hover:text-primary"
+              @click="setMode('sign-in')"
+            >
+              ← 返回登入
+            </button>
 
             <p v-if="authNotice" class="rounded-lg bg-primary/10 px-4 py-3 text-sm font-medium text-primary">
               {{ authNotice }}
