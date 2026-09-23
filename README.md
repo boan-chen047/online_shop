@@ -44,7 +44,7 @@
 | **會員中心** | 個人資料、已完結的歷史訂單 |
 | **7 天鑑賞期** | 訂單簽收後進入 7 天鑑賞期，顧客可提前確認完成 |
 | **登入** | Email／密碼註冊登入、Google 帳號登入（Supabase Auth） |
-| **最新消息** | 公告列表與內文頁 |
+| **最新消息** | 公告列表與內文頁，內容存在資料庫 |
 
 ### 後台管理（需管理員身分）
 
@@ -197,7 +197,7 @@ flowchart TB
 
 ## 資料庫設計
 
-10 張資料表、6 個主要資料庫函式，所有變更以 migration 檔管理（`supabase/migrations/`）。
+11 張資料表、6 個主要資料庫函式，所有變更以 migration 檔管理（`supabase/migrations/`）。
 
 <details>
 <summary><b>展開：資料表與主要函式</b></summary>
@@ -216,6 +216,7 @@ flowchart TB
 | `orders` | 訂單主檔（金額、付款／出貨狀態、收件資訊、時間戳） |
 | `order_items` | 訂單明細（下單當下的商品名稱、單價快照，之後改價不影響舊訂單） |
 | `site_settings` | 網站設定（目前用於限時特賣） |
+| `news` | 最新消息（公開可讀，僅管理員可寫） |
 
 > 可售數量 = `quantity - reserved_quantity`
 
@@ -257,8 +258,7 @@ online_shop/
 │   ├── components/ui/        # shadcn-vue 元件
 │   ├── composables/          # useAuth、useCart、useCatalog、useOrders、useSiteSettings…
 │   ├── lib/                  # supabase、ecpay、analytics（GA4）、圖片壓縮、台灣縣市資料
-│   ├── router/               # 路由與登入／管理員守衛
-│   └── data/                 # 靜態資料（最新消息）
+│   └── router/               # 路由與登入／管理員守衛
 ├── supabase/
 │   ├── migrations/           # 資料庫 schema 與函式
 │   ├── functions/
@@ -419,7 +419,7 @@ update public.user_profile set role = 'admin' where email = '你的信箱';
 ## 已知限制與後續規劃
 
 - **搜尋**目前在前端以「包含關鍵字」比對，商品量大時可改為資料庫全文搜尋。
-- **最新消息**目前為靜態資料，改由資料庫管理的版本開發中。
+- **最新消息**已改存資料庫，但還沒有後台編輯頁，新增或修改公告需直接在資料庫操作。
 - 尚未提供「忘記密碼」功能。
 - 缺貨時目前以文字提示，規劃改為彈出視窗並標示是哪一件商品。
 - 尚無自動化端對端測試，規劃以 Playwright 覆蓋「瀏覽 → 加入購物車 → 結帳 → 付款」主要流程。
