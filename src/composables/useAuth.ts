@@ -100,18 +100,19 @@ function getAuthErrorMessage(error: unknown) {
         : ''
 
   if (!isSupabaseConfigured) {
-    return 'Supabase is not configured yet. Set VITE_SUPABASE_URL and VITE_SUPABASE_PUBLISHABLE_KEY in your environment.'
+    // 環境變數 VITE_SUPABASE_URL / VITE_SUPABASE_PUBLISHABLE_KEY 未設定時顯示
+    return '系統尚未設定完成，請聯繫管理員。'
   }
 
   if (message.includes('Invalid login credentials')) {
-    return 'Email or password is incorrect.'
+    return '電子郵件或密碼錯誤。'
   }
 
   if (message.includes('Email not confirmed')) {
-    return 'Please confirm your email before signing in.'
+    return '請先到信箱完成驗證後再登入。'
   }
 
-  return message || 'Unable to complete the authentication request. Please try again.'
+  return message || '無法完成驗證請求，請稍後再試。'
 }
 
 async function signInWithEmail(email: string, password: string) {
@@ -190,7 +191,7 @@ async function signUpWithEmail(email: string, password: string) {
     }
 
     if (!data.session) {
-      authNotice.value = 'Account created. Please check your email to confirm your account before signing in.'
+      authNotice.value = '帳號已建立，請至信箱點擊確認信後再登入。'
     }
   } catch (error) {
     authError.value = getAuthErrorMessage(error)
