@@ -2,6 +2,7 @@
 import { computed, onBeforeUnmount, onMounted, reactive, ref } from 'vue'
 import { RouterLink } from 'vue-router'
 import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 import { useNews, type NewsArticle, type NewsInput } from '@/composables/useNews'
 
 const { newsItems, loadNews, createNews, deleteNews } = useNews()
@@ -40,6 +41,18 @@ const fileInput = ref<HTMLInputElement | null>(null)
 
 // 已用過的分類標籤，給輸入框當建議選項
 const existingTags = computed(() => [...new Set(newsItems.value.map((item) => item.tag).filter(Boolean))])
+
+// 列表搜尋：比對標題、分類標籤、摘要
+const keyword = ref('')
+const filteredNews = computed(() => {
+  const kw = keyword.value.trim().toLowerCase()
+  if (!kw) {
+    return newsItems.value
+  }
+  return newsItems.value.filter((item) =>
+    [item.title, item.tag, item.description].some((field) => (field ?? '').toLowerCase().includes(kw)),
+  )
+})
 
 function clearPreview() {
   if (imagePreview.value) {
@@ -231,6 +244,12 @@ const inputClass = 'w-full rounded-lg border border-outline-variant bg-surface p
         </div>
       </section>
 
+      <!-- 列表搜尋 -->
+      <div v-if="!isLoading && newsItems.length" class="mb-5">
+        <Input v-model="keyword" placeholder="搜尋標題、分類或摘要…" class="max-w-md" />
+        <p v-if="keyword.trim()" class="mt-2 text-sm text-on-surface-variant">找到 {{ filteredNews.length }} 則符合的消息。</p>
+      </div>
+
       <!-- 消息列表 -->
       <div v-if="isLoading" class="space-y-3">
         <div v-for="index in 4" :key="index" class="h-24 animate-pulse rounded-xl bg-surface-container-lowest" />
@@ -240,9 +259,13 @@ const inputClass = 'w-full rounded-lg border border-outline-variant bg-surface p
         目前沒有任何消息。
       </div>
 
+      <div v-else-if="!filteredNews.length" class="rounded-xl bg-surface-container-lowest p-8 text-center text-base text-on-surface-variant">
+        找不到符合的消息。
+      </div>
+
       <div v-else class="space-y-3">
         <div
-          v-for="item in newsItems"
+          v-for="item in filteredNews"
           :key="item.id"
           class="flex items-center gap-4 rounded-xl bg-surface-container-lowest p-3 shadow-sm md:p-4"
         >

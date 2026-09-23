@@ -3,6 +3,7 @@ import { computed, ref, watch } from 'vue'
 import { useNow } from '@vueuse/core'
 import { RouterLink, useRoute } from 'vue-router'
 import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 import { useAuth } from '@/composables/useAuth'
 import { formatPrice } from '@/composables/useCatalog'
 import { supabase } from '@/lib/supabase'
@@ -25,6 +26,8 @@ const isManagementView = computed(() => route.name === 'AdminOrders')
 
 const now = useNow()
 const orders = ref<Order[]>([])
+// 管理視角的搜尋關鍵字：比對訂單編號、收件人、電話、商品名稱
+const keyword = ref('')
 const isLoading = ref(false)
 const loadError = ref('')
 const updatingOrderId = ref('')
@@ -32,11 +35,25 @@ const payingOrderId = ref('')
 const confirmingOrderId = ref('')
 
 // 管理視角看全部；個人「我的訂單」只顯示進行中（已完結進歷史訂單頁）。
-const displayedOrders = computed(() =>
-  isManagementView.value
+const displayedOrders = computed(() => {
+  const base = isManagementView.value
     ? orders.value
-    : orders.value.filter((order) => !isOrderCompleted(order, now.value.getTime())),
-)
+    : orders.value.filter((order) => !isOrderCompleted(order, now.value.getTime()))
+
+  const kw = keyword.value.trim().toLowerCase()
+  if (!kw) {
+    return base
+  }
+  return base.filter((order) => {
+    const fields = [
+      order.id,
+      order.recipient_name,
+      order.recipient_phone,
+      ...order.order_items.map((item) => item.product_name),
+    ]
+    return fields.some((field) => (field ?? '').toLowerCase().includes(kw))
+  })
+})
 
 function reviewDeadline(order: Order) {
   return order.closed_at ? new Date(order.closed_at).toLocaleString('zh-TW') : ''
@@ -112,6 +129,12 @@ watch(
     <!-- 後台外殼已有上方間距且需與側欄對齊，只有顧客的「我的訂單」頁要自己留上方空間 -->
     <main class="mx-auto max-w-[94vw] px-5 pb-16" :class="{ 'pt-10': !isManagementView }">
       <h1 class="mb-6 font-headline text-2xl font-black">{{ isManagementView ? '訂單管理' : '我的訂單' }}</h1>
+
+      <!-- 管理視角：搜尋訂單編號／收件人／電話／商品名稱 -->
+      <div v-if="isManagementView && isAuthReady && currentUser" class="mb-5">
+        <Input v-model="keyword" placeholder="搜尋訂單編號、收件人、電話或商品名稱…" class="max-w-md" />
+        <p v-if="keyword.trim()" class="mt-2 text-sm text-on-surface-variant">找到 {{ displayedOrders.length }} 筆符合的訂單。</p>
+      </div>
 
       <div v-if="!isAuthReady" class="rounded-xl bg-surface-container-lowest p-8 text-center text-base text-on-surface-variant">
         載入中...

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 import { RouterLink, useRoute, useRouter } from 'vue-router'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -39,10 +39,41 @@ watch(currentUser, (user) => {
 const authMode = ref<'sign-in' | 'sign-up'>('sign-in')
 const email = ref('')
 const password = ref('')
+const rememberMe = ref(false)
+
+// 「記住我」只記住電子郵件（不存密碼明文）；密碼交給瀏覽器自己的密碼管理儲存。
+// 保持登入靠 Supabase 的持久 session（persistSession），登入一次後不用每次重登。
+const REMEMBERED_EMAIL_KEY = 'shop_remembered_email'
+
+onMounted(() => {
+  try {
+    const saved = localStorage.getItem(REMEMBERED_EMAIL_KEY)
+    if (saved) {
+      email.value = saved
+      rememberMe.value = true
+    }
+  } catch {
+    // 無痕模式或封鎖儲存時讀取會失敗，略過即可
+  }
+})
+
+function persistRememberedEmail() {
+  try {
+    if (rememberMe.value) {
+      localStorage.setItem(REMEMBERED_EMAIL_KEY, email.value.trim())
+    } else {
+      localStorage.removeItem(REMEMBERED_EMAIL_KEY)
+    }
+  } catch {
+    // 略過
+  }
+}
 
 const submitLabel = computed(() => authMode.value === 'sign-in' ? '登入' : '建立帳號')
 
 async function handleSubmit() {
+  persistRememberedEmail()
+
   if (authMode.value === 'sign-in') {
     await signInWithEmail(email.value, password.value)
     return
@@ -121,6 +152,11 @@ async function handleSubmit() {
                 placeholder="至少 6 個字元"
                 class="h-12 rounded-xl bg-surface-container-lowest"
               />
+            </label>
+
+            <label v-if="authMode === 'sign-in'" class="flex items-center gap-2 text-sm font-medium text-on-surface-variant">
+              <input v-model="rememberMe" type="checkbox" class="size-4 rounded border-outline-variant accent-primary" />
+              記住我的帳號（下次自動帶入電子郵件）
             </label>
 
             <Button class="primary-gradient h-12 w-full rounded-xl font-bold text-on-primary" :disabled="isSigningIn">
