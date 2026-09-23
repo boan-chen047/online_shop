@@ -187,6 +187,65 @@ export async function createNews(input: NewsInput, imageFile: File): Promise<voi
   await loadNews({ force: true })
 }
 
+// 編輯消息：更新內容；有換新封面圖才上傳、成功後把舊圖（僅限我們 bucket 裡的）刪掉。
+export async function updateNews(
+  article: NewsArticle,
+  input: NewsInput,
+  imageFile?: File | null,
+): Promise<void> {
+  const patch: Record<string, unknown> = {
+    tag: input.tag,
+    title: input.title,
+    description: input.description,
+    alt: input.title,
+    read_time: estimateReadTime(input),
+    published_at: input.publishedAt,
+    intro: input.intro,
+    section_title: input.sectionTitle,
+    section_body_1: input.sectionBody1,
+    quote_text: input.quoteText,
+    quote_author: input.quoteAuthor,
+    section_body_2: input.sectionBody2,
+  }
+
+  // 有選新圖才上傳並換 image_url；沒選就沿用原本的圖
+  let newPath: string | null = null
+  if (imageFile) {
+    const blob = await compressImage(imageFile)
+    newPath = `news/${uuid()}.jpg`
+    const { error: uploadError } = await supabase.storage
+      .from(BUCKET)
+      .upload(newPath, blob, { contentType: 'image/jpeg', upsert: false })
+    if (uploadError) {
+      throw uploadError
+    }
+    const { data: pub } = supabase.storage.from(BUCKET).getPublicUrl(newPath)
+    patch.image_url = pub.publicUrl
+  }
+
+  const { error } = await supabase.from('news').update(patch).eq('id', article.id)
+  if (error) {
+    // 更新失敗就把剛上傳的新圖刪掉，避免孤兒檔案
+    if (newPath) {
+      await supabase.storage.from(BUCKET).remove([newPath])
+    }
+    throw error
+  }
+
+  // 換了新圖 → 清掉舊圖（外部種子網址 storagePathFromUrl 會回 null，不動）
+  if (newPath) {
+    const oldPath = storagePathFromUrl(article.image)
+    if (oldPath) {
+      const { error: removeError } = await supabase.storage.from(BUCKET).remove([oldPath])
+      if (removeError) {
+        console.warn('Old news image could not be removed.', removeError)
+      }
+    }
+  }
+
+  await loadNews({ force: true })
+}
+
 // 刪除消息：先刪資料列，再刪我們自己 bucket 裡的圖片（外部網址的種子圖片不動）
 export async function deleteNews(article: NewsArticle): Promise<void> {
   const { error } = await supabase.from('news').delete().eq('id', article.id)
@@ -205,5 +264,5 @@ export async function deleteNews(article: NewsArticle): Promise<void> {
 }
 
 export function useNews() {
-  return { newsItems, loadNews, fetchNewsById, createNews, deleteNews }
+  return { newsItems, loadNews, fetchNewsById, createNews, updateNews, deleteNews }
 }
