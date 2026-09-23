@@ -14,6 +14,7 @@
 ## 目錄
 
 - [功能總覽](#功能總覽)
+- [畫面預覽](#畫面預覽)
 - [交易流程（User Journey）](#交易流程user-journey)
 - [技術架構](#技術架構)
 - [資料庫設計](#資料庫設計)
@@ -62,6 +63,20 @@
 | **逾時自動取消** | `pg_cron` 每 10 分鐘掃描，下單超過 3 天 12 小時未付款的訂單自動取消並釋放庫存 |
 | **路由守衛** | 未登入存取購物車、訂單頁會導向登入頁，登入後自動回到原頁面；後台限管理員 |
 | **流量分析** | Google Analytics 4，追蹤換頁與電商漏斗事件（詳見下方） |
+
+---
+
+## 畫面預覽
+
+依購物流程排列：
+
+| ① 商品列表（分類、排序、售完標示） | ② 購物車（勾選結帳、訂單摘要） |
+|:---:|:---:|
+| ![商品列表](docs/screenshots/products.webp) | ![購物車](docs/screenshots/cart.webp) |
+| **③ 填寫收件資訊（縣市鄉鎮連動）** | **④ 綠界收銀台（信用卡、ATM、超商等）** |
+| ![填寫收件資訊](docs/screenshots/checkout-info.webp) | ![綠界收銀台](docs/screenshots/ecpay.png) |
+| **⑤ 我的訂單（未付款可再次付款）** | **⑥ 登入（Email／Google）** |
+| ![我的訂單](docs/screenshots/my-orders.webp) | ![登入](docs/screenshots/login.webp) |
 
 ---
 
