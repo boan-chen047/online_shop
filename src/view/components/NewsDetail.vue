@@ -1,18 +1,25 @@
 <script setup lang="ts">
 // 引入依賴
-import { computed } from 'vue'
+import { onMounted, ref, watch } from 'vue'
 import { RouterLink, useRoute } from 'vue-router'
 import { Button } from '@/components/ui/button'
-import { getNewsById, newsItems } from '@/data/news'
+import { fetchNewsById, type NewsArticle } from '@/composables/useNews'
 import { ArrowLeft, Share2, Link, Bookmark } from 'lucide-vue-next'
 // 引入依賴
 
-// 文章資料
+// 文章資料：依網址 id 從資料庫載入單篇
 const route = useRoute()
-const article = computed(() => {
-  const id = Number(route.params.id)
-  return getNewsById(id) ?? newsItems[0]
-})
+const article = ref<NewsArticle | null>(null)
+const isLoading = ref(true)
+
+async function loadArticle() {
+  isLoading.value = true
+  article.value = await fetchNewsById(Number(route.params.id))
+  isLoading.value = false
+}
+
+onMounted(loadArticle)
+watch(() => route.params.id, loadArticle)
 // 文章資料
 
 </script>
@@ -28,10 +35,27 @@ const article = computed(() => {
           class="inline-flex items-center gap-2 text-primary font-bold hover:-translate-x-1 transition-transform duration-200 mb-8 group"
         >
           <ArrowLeft class="size-4" />
-          <span>Back to News</span>
+          <span>返回消息列表</span>
         </RouterLink>
         <!-- 返回按鈕 -->
 
+        <!-- 載入中 -->
+        <div v-if="isLoading" class="space-y-6">
+          <div class="h-8 w-40 animate-pulse rounded-lg bg-surface-container-low" />
+          <div class="h-12 w-3/4 animate-pulse rounded-lg bg-surface-container-low" />
+          <div class="aspect-video w-full animate-pulse rounded-4xl bg-surface-container-low" />
+        </div>
+
+        <!-- 找不到文章 -->
+        <div v-else-if="!article" class="rounded-2xl bg-surface-container-lowest p-12 text-center text-on-surface-variant">
+          <p class="font-bold text-on-surface">找不到這則消息</p>
+          <p class="mt-2 text-sm">這則消息可能已被移除或尚未發布。</p>
+          <Button as-child class="primary-gradient mt-6 rounded-xl font-bold text-on-primary">
+            <RouterLink to="/news">回消息列表</RouterLink>
+          </Button>
+        </div>
+
+        <template v-else>
         <!-- 文章標題 -->
         <header class="mb-8">
           <div class="flex items-center gap-3 mb-6">
@@ -94,7 +118,7 @@ const article = computed(() => {
         <!-- 分享區域 -->
         <section class="border-t border-outline-variant/50 pt-6 mt-12 flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div class="flex items-center gap-4">
-            <span class="text-xs font-bold text-on-surface-variant uppercase tracking-wider">Share this article</span>
+            <span class="text-xs font-bold text-on-surface-variant tracking-wider">分享此文章</span>
             <div class="flex gap-2">
               <Button variant="outline" size="icon" class="rounded-full border-outline-variant hover:bg-surface-container-high">
                 <Share2 class="size-4 text-on-surface-variant" />
@@ -107,10 +131,11 @@ const article = computed(() => {
 
           <Button variant="outline" class="flex items-center gap-2 rounded-full border-primary text-primary hover:bg-primary hover:text-on-primary transition-all">
             <Bookmark class="size-4" />
-            Save for later
+            稍後閱讀
           </Button>
         </section>
         <!-- 分享區域 -->
+        </template>
 
       </div>
     </main>
