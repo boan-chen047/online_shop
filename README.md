@@ -200,6 +200,8 @@ flowchart TB
 
 11 張資料表、6 個主要資料庫函式，所有變更以 migration 檔管理（`supabase/migrations/`）。
 
+> **Schema 健康檢查**：`supabase/checks/schema_health.sql` 會驗證正式庫是否具備關鍵資料表、函式、`orders` 的 trigger 與 RLS，缺項即報錯。建議每次 `supabase db push` 後在 Supabase SQL Editor 跑一次，抓出「migration 有寫、prod 卻沒有」的漂移（詳見該檔案開頭說明）。
+
 <details>
 <summary><b>展開：資料表與主要函式</b></summary>
 
