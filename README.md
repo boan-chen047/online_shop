@@ -76,7 +76,7 @@
 | ![商品列表](docs/screenshots/products.webp) | ![購物車](docs/screenshots/cart.webp) |
 | **③ 填寫收件資訊（縣市鄉鎮連動）** | **④ 綠界收銀台（信用卡、ATM、超商等）** |
 | ![填寫收件資訊](docs/screenshots/checkout-info.webp) | ![綠界收銀台](docs/screenshots/ecpay.png) |
-| **⑤ 我的訂單（未付款可再次付款）** | **⑥ 登入（Email／Google）** |
+| **⑤ 我的訂單（出貨／鑑賞期狀態、提前確認完成）** | **⑥ 登入（Email／Google）** |
 | ![我的訂單](docs/screenshots/my-orders.webp) | ![登入](docs/screenshots/login.webp) |
 
 ---
