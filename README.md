@@ -69,47 +69,55 @@
 
 ```mermaid
 flowchart LR
-    A["瀏覽／搜尋商品"] --> B["加入購物車"]
-    B --> C["勾選商品<br/>前往結帳"]
-    C --> D["填寫收件資訊"]
-    D --> E["建立訂單<br/>（伺服器計價＋預留庫存）"]
-    E --> F["綠界收銀台付款"]
-    F --> G["自動導回網站<br/>顯示付款成功"]
-    G --> H["20 秒後<br/>自動返回商店"]
-    F -. 未完成付款 .-> I["我的訂單<br/>「去付款」再次付款"]
-    I --> F
+    A["逛商品<br/>搜尋・分類"] --> B["購物車<br/>勾選結帳"]
+    B --> C["填收件資訊<br/>建立訂單"]
+    C --> D["綠界付款"]
+    D --> E["付款成功<br/>自動回商店"]
+    D -. 沒付完 .-> F["我的訂單<br/>再次付款"]
+    F -.-> D
 ```
+
+| 步驟 | 使用者看到的 | 系統在做的 |
+|---|---|---|
+| 逛商品 | 分類選單、搜尋列、限時特賣、熱銷排行 | 依分類與關鍵字篩選上架商品 |
+| 購物車 | 勾選要買的商品、調整數量 | 購物車存在資料庫，換裝置也還在 |
+| 建立訂單 | 填收件人、電話、縣市鄉鎮地址 | **伺服器重新計價**（含限時折扣）並**預留庫存**；庫存不足會告知是哪件商品 |
+| 綠界付款 | 綠界收銀台（信用卡、ATM、超商） | 參數由後端產生並加上 CheckMacValue 簽章 |
+| 付款成功 | 自動回到網站顯示成功，20 秒後回商店 | 收到綠界通知後驗章、標記已付款、正式扣庫存 |
+| 沒付完 | 「我的訂單」有「去付款」按鈕 | 保留庫存 3 天 12 小時，逾時自動取消並釋放 |
 
 ### 付款背後發生的事
 
 綠界付款有兩條獨立的回傳路線：**瀏覽器導回**只負責畫面，**伺服器通知**才負責改訂單狀態，所以就算使用者付完款直接關掉瀏覽器，訂單一樣會正確變成已付款。
 
 ```mermaid
+%%{init: {"sequence": {"width": 120, "actorMargin": 40}}}%%
 sequenceDiagram
     autonumber
-    participant U as 使用者瀏覽器
-    participant W as 前端（Vercel）
-    participant C as ecpay-create
+    actor U as 使用者
+    participant W as 網站
+    participant F as 後端函式
     participant E as 綠界
-    participant CB as ecpay-callback
-    participant R as ecpay-result
-    participant DB as Supabase DB
+    participant D as 資料庫
 
     U->>W: 送出訂單
-    W->>DB: create_order_from_cart()<br/>伺服器計價、預留庫存
-    DB-->>W: 訂單編號
-    W->>C: 產生付款參數
-    C-->>W: 參數＋CheckMacValue 簽章
-    W->>E: 導向綠界收銀台
-    U->>E: 輸入卡號付款
-    E->>CB: 伺服器通知（ReturnURL）
-    CB->>CB: 驗證 CheckMacValue
-    CB->>DB: mark_order_paid()<br/>預留轉為正式扣庫存
-    CB-->>E: 回覆 1#124;OK
-    E->>R: 瀏覽器 POST（OrderResultURL）
-    R-->>U: 303 轉址回 /checkout/result
-    U->>W: 顯示付款成功＋20 秒倒數
+    W->>D: 建立訂單<br/>計價＋預留庫存
+    W->>F: 產生付款參數
+    F-->>W: 參數＋簽章
+    W->>E: 導向收銀台
+    U->>E: 付款
+
+    par 伺服器通知：改訂單
+        E->>F: 付款結果<br/>ReturnURL
+        F->>D: 驗章、標記已付款<br/>正式扣庫存
+    and 瀏覽器導回：顯示畫面
+        E->>F: 導回<br/>OrderResultURL
+        F-->>W: 轉址到結果頁
+        W-->>U: 付款成功<br/>20 秒後回商店
+    end
 ```
+
+> 圖中「後端函式」是三支 Supabase Edge Functions：`ecpay-create` 產生參數與簽章、`ecpay-callback` 接收付款通知並更新訂單、`ecpay-result` 把瀏覽器轉回網站。
 
 ### 訂單狀態
 
@@ -172,6 +180,11 @@ flowchart TB
 
 ## 資料庫設計
 
+10 張資料表、6 個主要資料庫函式，所有變更以 migration 檔管理（`supabase/migrations/`）。
+
+<details>
+<summary><b>展開：資料表與主要函式</b></summary>
+
 ### 資料表
 
 | 資料表 | 用途 |
@@ -200,7 +213,7 @@ flowchart TB
 | `confirm_order_completed()` | 顧客提前結束 7 天鑑賞期 |
 | `is_admin()` | 判斷目前使用者是否為管理員，供 RLS 規則使用 |
 
-所有資料庫變更都以 migration 檔管理，位於 `supabase/migrations/`。
+</details>
 
 ---
 
@@ -216,6 +229,9 @@ flowchart TB
 ---
 
 ## 專案結構
+
+<details>
+<summary><b>展開：目錄結構</b></summary>
 
 ```
 online_shop/
@@ -238,6 +254,8 @@ online_shop/
 ├── .github/workflows/ci.yml  # CI
 └── vercel.json               # SPA 路由設定
 ```
+
+</details>
 
 ---
 
@@ -289,6 +307,11 @@ pnpm build
 
 ## Supabase 設定
 
+自架一份需要：套用 migration、部署三支 Edge Functions 並設定綠界金鑰、設定登入網址、指定管理員。
+
+<details>
+<summary><b>展開：完整設定步驟</b></summary>
+
 ### 1. 套用資料庫 migration
 
 ```bash
@@ -336,6 +359,8 @@ Supabase Dashboard → Authentication → **URL Configuration**：
 ```sql
 update public.user_profile set role = 'admin' where email = '你的信箱';
 ```
+
+</details>
 
 ---
 
