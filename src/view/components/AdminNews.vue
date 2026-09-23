@@ -1,11 +1,10 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, reactive, ref } from 'vue'
-import { RouterLink } from 'vue-router'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { useNews, type NewsArticle, type NewsInput } from '@/composables/useNews'
 
-const { newsItems, loadNews, createNews, deleteNews } = useNews()
+const { newsItems, loadNews, createNews, updateNews, deleteNews } = useNews()
 
 const isLoading = ref(true)
 const showForm = ref(false)
@@ -13,6 +12,12 @@ const isSaving = ref(false)
 const deletingId = ref<number | null>(null)
 const message = ref('')
 const errorMessage = ref('')
+
+// 編輯狀態：null = 新增；有值 = 正在編輯該則消息
+const editingId = ref<number | null>(null)
+const editingArticle = ref<NewsArticle | null>(null)
+const existingImageUrl = ref('') // 編輯時原本的封面圖（沒換新圖就沿用）
+const isEditing = computed(() => editingId.value !== null)
 
 // 台灣時間的今天（yyyy-mm-dd），當作發布日期預設值
 function todayInTaiwan(): string {
@@ -82,11 +87,47 @@ function resetForm() {
 function openForm() {
   message.value = ''
   errorMessage.value = ''
+  resetForm()
+  editingId.value = null
+  editingArticle.value = null
+  existingImageUrl.value = ''
   showForm.value = true
+}
+
+// 開啟編輯：把該則消息內容填入表單，封面圖預設沿用舊圖
+function openEdit(item: NewsArticle) {
+  message.value = ''
+  errorMessage.value = ''
+  Object.assign(form, {
+    tag: item.tag,
+    title: item.title,
+    description: item.description,
+    publishedAt: item.dateRaw,
+    intro: item.content.intro,
+    sectionTitle: item.content.sectionTitle,
+    sectionBody1: item.content.sectionBody1,
+    quoteText: item.content.quote.text,
+    quoteAuthor: item.content.quote.author,
+    sectionBody2: item.content.sectionBody2,
+  } satisfies NewsInput)
+  imageFile.value = null
+  clearPreview()
+  if (fileInput.value) {
+    fileInput.value.value = ''
+  }
+  existingImageUrl.value = item.image
+  editingId.value = item.id
+  editingArticle.value = item
+  showForm.value = true
+  // 捲到表單方便編輯
+  window.scrollTo({ top: 0, behavior: 'smooth' })
 }
 
 function cancelForm() {
   resetForm()
+  editingId.value = null
+  editingArticle.value = null
+  existingImageUrl.value = ''
   errorMessage.value = ''
   showForm.value = false
 }
@@ -104,7 +145,8 @@ async function submit() {
   ]
     .filter(([value]) => !value.trim())
     .map(([, label]) => label)
-  if (!imageFile.value) {
+  // 封面圖：新增必填；編輯時可留空，沿用原本的圖
+  if (!isEditing.value && !imageFile.value) {
     missing.push('封面圖片')
   }
   if (missing.length) {
@@ -119,12 +161,21 @@ async function submit() {
 
   isSaving.value = true
   try {
-    await createNews(trimmed, imageFile.value!)
+    if (isEditing.value && editingArticle.value) {
+      await updateNews(editingArticle.value, trimmed, imageFile.value)
+      message.value = `已更新「${trimmed.title}」`
+    } else {
+      await createNews(trimmed, imageFile.value!)
+      message.value = `已發布「${trimmed.title}」`
+    }
     resetForm()
+    editingId.value = null
+    editingArticle.value = null
+    existingImageUrl.value = ''
     showForm.value = false
-    message.value = `已發布「${trimmed.title}」`
   } catch (error) {
-    errorMessage.value = error instanceof Error ? `發布失敗：${error.message}` : '發布失敗，請確認你有管理員權限。'
+    const action = isEditing.value ? '更新' : '發布'
+    errorMessage.value = error instanceof Error ? `${action}失敗：${error.message}` : `${action}失敗，請確認你有管理員權限。`
   }
   isSaving.value = false
 }
@@ -175,7 +226,7 @@ const inputClass = 'w-full rounded-lg border border-outline-variant bg-surface p
 
       <!-- 新增表單 -->
       <section v-if="showForm" class="mb-8 space-y-5 rounded-xl border border-outline-variant bg-surface-container-lowest p-5 md:p-6">
-        <h2 class="font-headline text-lg font-bold">新增消息</h2>
+        <h2 class="font-headline text-lg font-bold">{{ isEditing ? '編輯消息' : '新增消息' }}</h2>
 
         <div class="grid gap-4 md:grid-cols-[1fr_1fr_12rem]">
           <div>
@@ -201,9 +252,13 @@ const inputClass = 'w-full rounded-lg border border-outline-variant bg-surface p
         </div>
 
         <div>
-          <label class="mb-1 block text-sm font-bold">封面圖片 <span class="text-error">*</span><span class="font-normal text-outline">（上傳時會自動壓縮）</span></label>
+          <label class="mb-1 block text-sm font-bold">
+            封面圖片 <span v-if="!isEditing" class="text-error">*</span>
+            <span class="font-normal text-outline">（上傳時會自動壓縮{{ isEditing ? '；不選就沿用原本的圖' : '' }}）</span>
+          </label>
           <input ref="fileInput" type="file" accept="image/*" class="text-sm" @change="onPickImage" />
           <img v-if="imagePreview" :src="imagePreview" alt="封面預覽" class="mt-3 aspect-video w-full max-w-sm rounded-lg object-cover" />
+          <img v-else-if="existingImageUrl" :src="existingImageUrl" alt="目前封面" class="mt-3 aspect-video w-full max-w-sm rounded-lg object-cover" />
         </div>
 
         <div>
@@ -239,7 +294,7 @@ const inputClass = 'w-full rounded-lg border border-outline-variant bg-surface p
         <div class="flex justify-end gap-3 pt-2">
           <Button variant="outline" class="rounded-lg font-bold" :disabled="isSaving" @click="cancelForm">取消</Button>
           <Button class="primary-gradient rounded-lg font-bold text-on-primary" :disabled="isSaving" @click="submit">
-            {{ isSaving ? '發布中…' : '發布' }}
+            {{ isSaving ? (isEditing ? '更新中…' : '發布中…') : (isEditing ? '更新' : '發布') }}
           </Button>
         </div>
       </section>
@@ -278,8 +333,8 @@ const inputClass = 'w-full rounded-lg border border-outline-variant bg-surface p
             <p class="mt-0.5 truncate text-sm text-on-surface-variant">{{ item.description }}</p>
           </div>
           <div class="flex shrink-0 flex-col gap-2 sm:flex-row">
-            <Button as-child variant="outline" size="sm" class="rounded-lg font-bold">
-              <RouterLink :to="`/news/${item.id}`" target="_blank">查看</RouterLink>
+            <Button variant="outline" size="sm" class="rounded-lg font-bold" @click="openEdit(item)">
+              編輯
             </Button>
             <Button
               variant="outline"
