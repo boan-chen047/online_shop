@@ -7,6 +7,8 @@
 - **正式站**：https://online-shop-ruby-one.vercel.app
 - **原始碼**：https://github.com/boan-chen047/online_shop
 
+![首頁](docs/screenshots/home.webp)
+
 ---
 
 ## 目錄
