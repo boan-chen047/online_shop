@@ -61,7 +61,7 @@ const routes = [
     meta: { requiresAuth: true }
   },
   {
-    // 後台管理外殼：商品／訂單／網站設定，全區要求管理員權限
+    // 後台管理外殼：商品／訂單／最新消息／網站設定，全區要求管理員權限
     path: '/admin',
     component: () => import('../view/components/AdminLayout.vue'),
     meta: { requiresAdmin: true },
@@ -81,6 +81,11 @@ const routes = [
         path: 'orders',
         name: 'AdminOrders',
         component: () => import('../view/components/AdminOrders.vue'),
+      },
+      {
+        path: 'news',
+        name: 'AdminNews',
+        component: () => import('../view/components/AdminNews.vue'),
       },
       {
         path: 'settings',
