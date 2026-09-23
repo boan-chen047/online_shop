@@ -43,6 +43,13 @@ const routes = [
     component: () => import('../view/components/Login.vue')
   },
   {
+    // 重設密碼頁：使用者點信件連結進來（帶 recovery token）。不可設 requiresAuth，
+    // 否則守衛會在 recovery session 建立前把人導回登入頁。
+    path: '/reset-password',
+    name: 'ResetPassword',
+    component: () => import('../view/components/ResetPassword.vue')
+  },
+  {
     path: '/news',
     name: 'News',
     component: () => import('../view/components/News.vue')

@@ -215,6 +215,59 @@ async function signOutUser() {
   }
 }
 
+// 寄送重設密碼信；使用者點信中連結會帶著 recovery token 回到 /reset-password。
+// 註：為避免帳號探測，無論該 email 是否存在都顯示相同的成功訊息。
+async function sendPasswordReset(email: string) {
+  authError.value = ''
+  authNotice.value = ''
+  isSigningIn.value = true
+
+  try {
+    if (!isSupabaseConfigured) {
+      throw new Error('not-configured')
+    }
+
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/reset-password`,
+    })
+
+    if (error) {
+      throw error
+    }
+
+    authNotice.value = '若這個 email 有註冊過，我們已寄出重設密碼信，請至信箱點擊連結。'
+  } catch (error) {
+    authError.value = getAuthErrorMessage(error)
+  } finally {
+    isSigningIn.value = false
+  }
+}
+
+// 使用者從重設密碼信連結回來（此時已有 recovery session）後，設定新密碼。
+async function updatePassword(newPassword: string) {
+  authError.value = ''
+  authNotice.value = ''
+  isSigningIn.value = true
+
+  try {
+    if (!isSupabaseConfigured) {
+      throw new Error('not-configured')
+    }
+
+    const { error } = await supabase.auth.updateUser({ password: newPassword })
+
+    if (error) {
+      throw error
+    }
+
+    authNotice.value = '密碼已更新，請用新密碼登入。'
+  } catch (error) {
+    authError.value = getAuthErrorMessage(error)
+  } finally {
+    isSigningIn.value = false
+  }
+}
+
 const userProfile = computed(() => {
   const user = currentUser.value
 
@@ -272,5 +325,7 @@ export function useAuth() {
     signInWithGoogle,
     signUpWithEmail,
     signOutUser,
+    sendPasswordReset,
+    updatePassword,
   }
 }
