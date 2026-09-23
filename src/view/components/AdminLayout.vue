@@ -1,12 +1,13 @@
 <script setup lang="ts">
 import { RouterLink, RouterView, useRoute } from 'vue-router'
-import { Package, ClipboardList, Settings } from 'lucide-vue-next'
+import { Package, ClipboardList, Newspaper, Settings } from 'lucide-vue-next'
 
 const route = useRoute()
 
 const navItems = [
   { name: 'AdminProducts', label: '商品管理', icon: Package },
   { name: 'AdminOrders', label: '訂單管理', icon: ClipboardList },
+  { name: 'AdminNews', label: '最新消息', icon: Newspaper },
   { name: 'AdminSettings', label: '網站設定', icon: Settings },
 ]
 

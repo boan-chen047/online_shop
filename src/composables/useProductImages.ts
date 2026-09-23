@@ -9,7 +9,8 @@ export interface ProductImage {
   is_primary: boolean
 }
 
-const BUCKET = 'product-images'
+// 最新消息的圖片也共用這個 bucket（放在 news/ 資料夾下）
+export const BUCKET = 'product-images'
 
 export async function loadImages(productId: string): Promise<ProductImage[]> {
   const { data, error } = await supabase
@@ -24,13 +25,13 @@ export async function loadImages(productId: string): Promise<ProductImage[]> {
   return (data ?? []) as ProductImage[]
 }
 
-function uuid(): string {
+export function uuid(): string {
   const c = crypto as Crypto & { randomUUID?: () => string }
   return c.randomUUID?.() ?? `${Date.now()}-${Math.random().toString(16).slice(2)}`
 }
 
 // 從 public URL 反推 storage 內路徑（供刪除用）
-function storagePathFromUrl(url: string): string | null {
+export function storagePathFromUrl(url: string): string | null {
   const marker = `/storage/v1/object/public/${BUCKET}/`
   const idx = url.indexOf(marker)
   return idx >= 0 ? url.slice(idx + marker.length) : null

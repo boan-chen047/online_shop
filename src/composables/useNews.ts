@@ -1,5 +1,7 @@
 import { ref } from 'vue'
 import { isSupabaseConfigured, supabase } from '@/lib/supabase'
+import { compressImage } from '@/lib/imageCompress'
+import { BUCKET, storagePathFromUrl, uuid } from '@/composables/useProductImages'
 
 export interface NewsArticle {
   id: number
@@ -128,6 +130,80 @@ export async function fetchNewsById(id: number): Promise<NewsArticle | null> {
   return mapRow(data as NewsRow)
 }
 
+// 後台新增消息用的表單內容（圖片另外傳檔案）
+export interface NewsInput {
+  tag: string
+  title: string
+  description: string
+  publishedAt: string // yyyy-mm-dd
+  intro: string
+  sectionTitle: string
+  sectionBody1: string
+  quoteText: string
+  quoteAuthor: string
+  sectionBody2: string
+}
+
+// 依內文字數估算閱讀時間：中文約每分鐘 400 字，至少 1 分鐘
+function estimateReadTime(input: NewsInput): string {
+  const length = [input.intro, input.sectionTitle, input.sectionBody1, input.quoteText, input.sectionBody2]
+    .join('')
+    .replace(/\s/g, '').length
+  return `${Math.max(1, Math.ceil(length / 400))} 分鐘閱讀`
+}
+
+// 新增消息：先上傳圖片 → 再寫入資料表；寫入失敗就把剛上傳的圖刪掉，避免留下孤兒檔案
+export async function createNews(input: NewsInput, imageFile: File): Promise<void> {
+  const blob = await compressImage(imageFile)
+  const path = `news/${uuid()}.jpg`
+  const { error: uploadError } = await supabase.storage
+    .from(BUCKET)
+    .upload(path, blob, { contentType: 'image/jpeg', upsert: false })
+  if (uploadError) {
+    throw uploadError
+  }
+  const { data: pub } = supabase.storage.from(BUCKET).getPublicUrl(path)
+
+  const { error: insertError } = await supabase.from('news').insert({
+    tag: input.tag,
+    title: input.title,
+    description: input.description,
+    image_url: pub.publicUrl,
+    alt: input.title,
+    read_time: estimateReadTime(input),
+    published_at: input.publishedAt,
+    intro: input.intro,
+    section_title: input.sectionTitle,
+    section_body_1: input.sectionBody1,
+    quote_text: input.quoteText,
+    quote_author: input.quoteAuthor,
+    section_body_2: input.sectionBody2,
+  })
+  if (insertError) {
+    await supabase.storage.from(BUCKET).remove([path])
+    throw insertError
+  }
+
+  await loadNews({ force: true })
+}
+
+// 刪除消息：先刪資料列，再刪我們自己 bucket 裡的圖片（外部網址的種子圖片不動）
+export async function deleteNews(article: NewsArticle): Promise<void> {
+  const { error } = await supabase.from('news').delete().eq('id', article.id)
+  if (error) {
+    throw error
+  }
+  const path = storagePathFromUrl(article.image)
+  if (path) {
+    const { error: removeError } = await supabase.storage.from(BUCKET).remove([path])
+    if (removeError) {
+      console.warn('News image could not be removed.', removeError)
+    }
+  }
+
+  await loadNews({ force: true })
+}
+
 export function useNews() {
-  return { newsItems, loadNews, fetchNewsById }
+  return { newsItems, loadNews, fetchNewsById, createNews, deleteNews }
 }

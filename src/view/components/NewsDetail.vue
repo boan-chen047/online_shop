@@ -92,24 +92,25 @@ watch(() => route.params.id, loadArticle)
             {{ article.content.intro }}
           </p>
 
-          <h2 class="font-headline font-bold text-2xl text-on-surface mt-12 mb-6">
+          <!-- 以下為選填區塊：後台沒填就不顯示 -->
+          <h2 v-if="article.content.sectionTitle" class="font-headline font-bold text-2xl text-on-surface mt-12 mb-6">
             {{ article.content.sectionTitle }}
           </h2>
 
-          <p class="font-body text-base text-on-surface-variant leading-relaxed mb-6">
+          <p v-if="article.content.sectionBody1" class="font-body text-base text-on-surface-variant leading-relaxed mb-6">
             {{ article.content.sectionBody1 }}
           </p>
 
-          <blockquote class="border-l-4 border-primary bg-surface-container-low p-6 my-8 rounded-r-2xl">
+          <blockquote v-if="article.content.quote.text" class="border-l-4 border-primary bg-surface-container-low p-6 my-8 rounded-r-2xl">
             <p class="font-headline italic text-primary leading-snug">
               {{ article.content.quote.text }}
             </p>
-            <cite class="block mt-4 text-xs font-bold not-italic text-on-surface-variant">
+            <cite v-if="article.content.quote.author" class="block mt-4 text-xs font-bold not-italic text-on-surface-variant">
               — {{ article.content.quote.author }}
             </cite>
           </blockquote>
 
-          <p class="font-body text-base text-on-surface-variant leading-relaxed mb-12">
+          <p v-if="article.content.sectionBody2" class="font-body text-base text-on-surface-variant leading-relaxed mb-12">
             {{ article.content.sectionBody2 }}
           </p>
         </article>
