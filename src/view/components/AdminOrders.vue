@@ -109,7 +109,8 @@ watch(
 
 <template>
   <div class="text-on-surface antialiased font-body">
-    <main class="mx-auto max-w-[94vw] px-5 pb-16">
+    <!-- 後台外殼已有上方間距且需與側欄對齊，只有顧客的「我的訂單」頁要自己留上方空間 -->
+    <main class="mx-auto max-w-[94vw] px-5 pb-16" :class="{ 'pt-10': !isManagementView }">
       <h1 class="mb-6 font-headline text-2xl font-black">{{ isManagementView ? '訂單管理' : '我的訂單' }}</h1>
 
       <div v-if="!isAuthReady" class="rounded-xl bg-surface-container-lowest p-8 text-center text-base text-on-surface-variant">
