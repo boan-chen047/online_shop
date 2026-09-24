@@ -172,6 +172,10 @@
   * {
     @apply border-border outline-ring/50;
   }
+  /* 永遠保留捲軸空間：頁面長短切換時捲軸出現/消失不會讓版面左右晃 */
+  html {
+    scrollbar-gutter: stable;
+  }
   body {
     @apply bg-surface text-on-surface font-body antialiased;;
     overflow-x: hidden;

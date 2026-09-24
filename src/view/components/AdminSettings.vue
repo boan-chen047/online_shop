@@ -3,6 +3,8 @@ import { computed, onMounted, ref } from 'vue'
 import { Button } from '@/components/ui/button'
 import { useAuth } from '@/composables/useAuth'
 import { isSupabaseConfigured, supabase } from '@/lib/supabase'
+import { formatPrice } from '@/composables/useCatalog'
+import AdminPageHeader from './AdminPageHeader.vue'
 
 const { currentUser } = useAuth()
 
@@ -129,11 +131,15 @@ onMounted(load)
 </script>
 
 <template>
-  <div class="max-w-xl">
-    <h1 class="mb-1 font-headline text-xl font-bold text-on-surface">網站設定</h1>
-    <p class="mb-6 text-sm text-outline">設定首頁折扣倒數的開始與結束時間（台灣時間）。</p>
+  <div class="pb-16">
+    <AdminPageHeader title="網站設定" description="設定首頁限時特賣的時間（台灣時間）、折數與參加商品。" />
 
-    <div class="space-y-4 rounded-xl border border-outline-variant bg-surface-container-lowest p-5">
+    <p v-if="message" class="mb-4 max-w-3xl rounded-lg bg-primary/10 px-4 py-3 text-sm font-bold text-primary">{{ message }}</p>
+    <p v-if="errorMessage" class="mb-4 max-w-3xl rounded-lg bg-error/10 px-4 py-3 text-sm font-bold text-error">{{ errorMessage }}</p>
+
+    <div class="max-w-3xl space-y-5 rounded-xl bg-surface-container-lowest p-5 shadow-sm md:p-6">
+      <h2 class="font-headline text-lg font-bold">限時特賣</h2>
+      <div class="grid gap-4 md:grid-cols-2">
       <div>
         <label class="mb-1 block text-sm font-bold text-on-surface">開始時間</label>
         <input
@@ -149,6 +155,7 @@ onMounted(load)
           type="datetime-local"
           class="w-full rounded-lg border border-outline-variant bg-surface px-3 py-2 text-sm text-on-surface"
         />
+      </div>
       </div>
 
       <div>
@@ -179,23 +186,21 @@ onMounted(load)
           >
             <input type="checkbox" :checked="selectedIds.has(product.id)" @change="toggleProduct(product.id)" />
             <span class="text-sm text-on-surface">{{ product.name }}</span>
-            <span class="ml-auto text-xs text-outline">{{ product.price }}</span>
+            <span class="ml-auto text-xs text-outline">{{ formatPrice(product.price) }}</span>
           </label>
           <p v-if="!filteredPickProducts.length" class="px-3 py-4 text-center text-sm text-outline">找不到商品。</p>
         </div>
         <p class="mt-1 text-xs text-outline">已選 {{ selectedIds.size }} 項</p>
       </div>
 
-      <div class="flex items-center gap-3 pt-2">
+      <div class="flex justify-end pt-2">
         <Button
           :disabled="isSaving || isLoading"
-          class="primary-gradient font-bold text-on-primary hover:opacity-80"
+          class="primary-gradient rounded-lg font-bold text-on-primary"
           @click="save"
         >
-          {{ isSaving ? '儲存中…' : '儲存' }}
+          {{ isSaving ? '儲存中…' : '儲存設定' }}
         </Button>
-        <span v-if="message" class="text-sm font-bold text-green-600">{{ message }}</span>
-        <span v-if="errorMessage" class="text-sm font-bold text-red-600">{{ errorMessage }}</span>
       </div>
     </div>
   </div>

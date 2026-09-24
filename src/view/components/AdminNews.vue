@@ -3,6 +3,7 @@ import { computed, onBeforeUnmount, onMounted, reactive, ref } from 'vue'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { useNews, type NewsArticle, type NewsInput } from '@/composables/useNews'
+import AdminPageHeader from './AdminPageHeader.vue'
 
 const { newsItems, loadNews, createNews, updateNews, deleteNews } = useNews()
 
@@ -210,22 +211,19 @@ const inputClass = 'w-full rounded-lg border border-outline-variant bg-surface p
 <template>
   <div class="text-on-surface antialiased font-body">
     <main class="pb-16">
-      <div class="mb-6 flex flex-wrap items-center justify-between gap-4">
-        <h1 class="font-headline text-2xl font-black">最新消息管理</h1>
-        <Button
-          v-if="!showForm"
-          class="primary-gradient rounded-lg font-bold text-on-primary"
-          @click="openForm"
-        >
-          ＋ 新增消息
-        </Button>
-      </div>
+      <AdminPageHeader title="最新消息" description="發布、編輯與刪除網站公告。">
+        <template v-if="!showForm" #actions>
+          <Button class="primary-gradient rounded-lg font-bold text-on-primary" @click="openForm">
+            ＋ 新增消息
+          </Button>
+        </template>
+      </AdminPageHeader>
 
       <p v-if="message" class="mb-4 rounded-lg bg-primary/10 px-4 py-3 text-sm font-bold text-primary">{{ message }}</p>
       <p v-if="errorMessage" class="mb-4 rounded-lg bg-error/10 px-4 py-3 text-sm font-bold text-error">{{ errorMessage }}</p>
 
       <!-- 新增表單 -->
-      <section v-if="showForm" class="mb-8 space-y-5 rounded-xl border border-outline-variant bg-surface-container-lowest p-5 md:p-6">
+      <section v-if="showForm" class="mb-8 space-y-5 rounded-xl bg-surface-container-lowest p-5 shadow-sm md:p-6">
         <h2 class="font-headline text-lg font-bold">{{ isEditing ? '編輯消息' : '新增消息' }}</h2>
 
         <div class="grid gap-4 md:grid-cols-[1fr_1fr_12rem]">
@@ -301,7 +299,7 @@ const inputClass = 'w-full rounded-lg border border-outline-variant bg-surface p
 
       <!-- 列表搜尋 -->
       <div v-if="!isLoading && newsItems.length" class="mb-5">
-        <Input v-model="keyword" placeholder="搜尋標題、分類或摘要…" class="max-w-md" />
+        <Input v-model="keyword" placeholder="搜尋標題、分類或摘要…" class="max-w-sm bg-surface-container-lowest" />
         <p v-if="keyword.trim()" class="mt-2 text-sm text-on-surface-variant">找到 {{ filteredNews.length }} 則符合的消息。</p>
       </div>
 

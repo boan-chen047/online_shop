@@ -7,6 +7,7 @@ import { useAuth } from '@/composables/useAuth'
 import { formatPrice } from '@/composables/useCatalog'
 import { useFlashSalePricing } from '@/composables/useSiteSettings'
 import { supabase } from '@/lib/supabase'
+import AdminPageHeader from './AdminPageHeader.vue'
 
 interface ProductCard {
   id: string
@@ -139,26 +140,26 @@ onMounted(loadData)
 <template>
   <div class="text-on-surface antialiased font-body">
     <main class="pb-16">
-      <div class="mb-6 flex flex-wrap items-center justify-between gap-4">
-        <h1 class="font-headline text-2xl font-black">商品管理</h1>
-        <div v-if="isAdmin && !isLoading && !loadError" class="flex items-center gap-3 text-sm">
-          <div class="flex items-center gap-2">
-            <span class="text-on-surface-variant">狀態</span>
-            <select v-model="statusFilter" class="rounded-md border border-input bg-transparent px-3 py-1.5 font-bold outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50">
-              <option value="all">全部</option>
-              <option value="active">上架</option>
-              <option value="draft">草稿</option>
-              <option value="archived">封存</option>
-            </select>
-          </div>
+      <AdminPageHeader title="商品管理" description="新增、編輯商品，管理上架狀態與圖片。">
+        <template v-if="isAdmin" #actions>
           <Button class="primary-gradient rounded-lg font-bold text-on-primary" :disabled="isCreating" @click="createProduct">
             {{ isCreating ? '建立中…' : '＋ 新增商品' }}
           </Button>
-        </div>
-      </div>
+        </template>
+      </AdminPageHeader>
 
-      <div v-if="isAdmin && !isLoading && !loadError" class="mb-5">
-        <Input v-model="keyword" placeholder="搜尋商品名稱或代碼…" class="max-w-sm" />
+      <!-- 工具列：搜尋 + 篩選 -->
+      <div v-if="isAdmin && !isLoading && !loadError" class="mb-5 flex flex-wrap items-center gap-3">
+        <Input v-model="keyword" placeholder="搜尋商品名稱或代碼…" class="max-w-sm bg-surface-container-lowest" />
+        <div class="flex items-center gap-2 text-sm">
+          <span class="text-on-surface-variant">狀態</span>
+          <select v-model="statusFilter" class="h-9 rounded-md border border-input bg-surface-container-lowest px-3 font-bold outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50">
+            <option value="all">全部</option>
+            <option value="active">上架</option>
+            <option value="draft">草稿</option>
+            <option value="archived">封存</option>
+          </select>
+        </div>
       </div>
 
       <div v-if="!isAuthReady" class="rounded-xl bg-surface-container-lowest p-8 text-center text-base text-on-surface-variant">

@@ -8,6 +8,7 @@ import { useAuth } from '@/composables/useAuth'
 import { formatPrice } from '@/composables/useCatalog'
 import { supabase } from '@/lib/supabase'
 import { startEcpayPayment } from '@/lib/ecpay'
+import AdminPageHeader from './AdminPageHeader.vue'
 import {
   type Order,
   loadMyOrders,
@@ -126,13 +127,17 @@ watch(
 
 <template>
   <div class="text-on-surface antialiased font-body">
-    <!-- 後台外殼已有上方間距且需與側欄對齊，只有顧客的「我的訂單」頁要自己留上方空間 -->
-    <main class="mx-auto max-w-[94vw] px-5 pb-16" :class="{ 'pt-10': !isManagementView }">
-      <h1 class="mb-6 font-headline text-2xl font-black">{{ isManagementView ? '訂單管理' : '我的訂單' }}</h1>
+    <!-- 後台外殼已提供寬度與內距；只有顧客的「我的訂單」頁要自己置中並留上方空間，
+         否則後台會多一層內距，換頁時內容往右偏 -->
+    <main class="pb-16" :class="{ 'mx-auto max-w-[94vw] px-5 pt-10': !isManagementView }">
+      <AdminPageHeader
+        :title="isManagementView ? '訂單管理' : '我的訂單'"
+        :description="isManagementView ? '查看全部訂單、調整出貨狀態。' : '查看進行中訂單的付款與出貨狀態。'"
+      />
 
       <!-- 管理視角：搜尋訂單編號／收件人／電話／商品名稱 -->
       <div v-if="isManagementView && isAuthReady && currentUser" class="mb-5">
-        <Input v-model="keyword" placeholder="搜尋訂單編號、收件人、電話或商品名稱…" class="max-w-md" />
+        <Input v-model="keyword" placeholder="搜尋訂單編號、收件人、電話或商品名稱…" class="max-w-sm bg-surface-container-lowest" />
         <p v-if="keyword.trim()" class="mt-2 text-sm text-on-surface-variant">找到 {{ displayedOrders.length }} 筆符合的訂單。</p>
       </div>
 

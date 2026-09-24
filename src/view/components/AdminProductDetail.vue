@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input'
 import { useAuth } from '@/composables/useAuth'
 import { supabase } from '@/lib/supabase'
 import { type ProductImage, loadImages, uploadImages, setPrimary, deleteImage } from '@/composables/useProductImages'
+import AdminPageHeader from './AdminPageHeader.vue'
 
 interface Category { id: string; name: string }
 
@@ -254,10 +255,14 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="max-w-3xl">
-    <RouterLink :to="{ name: 'AdminProducts' }" class="mb-4 inline-flex items-center gap-1 text-sm font-bold text-primary hover:underline">
-      <span aria-hidden="true">&larr;</span> 返回商品列表
-    </RouterLink>
+  <div class="max-w-3xl pb-16">
+    <AdminPageHeader title="編輯商品" description="修改商品資料、狀態與圖片。">
+      <template #actions>
+        <Button as-child variant="outline" class="rounded-lg bg-surface-container-lowest font-bold">
+          <RouterLink :to="{ name: 'AdminProducts' }">← 返回商品列表</RouterLink>
+        </Button>
+      </template>
+    </AdminPageHeader>
 
     <div v-if="!isAuthReady || isLoading" class="rounded-xl bg-surface-container-lowest p-8 text-center text-base text-on-surface-variant">
       載入中...
