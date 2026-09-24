@@ -284,12 +284,12 @@ onMounted(async () => {
       </Button>
     </div>
 
-    <!-- 全寬左右兩欄：左＝商品資料＋危險操作，右＝商品圖片 -->
-    <div v-else class="grid gap-6 lg:grid-cols-[minmax(0,1.25fr)_minmax(0,1fr)] lg:items-start">
-      <div class="flex min-w-0 flex-col gap-6">
+    <!-- 全寬單欄：同一張卡片包含商品資料與商品圖片，刪除區在最下方 -->
+    <div v-else class="flex flex-col gap-6">
     <section class="rounded-xl bg-surface-container-lowest p-5 shadow-sm md:p-6">
       <h2 class="mb-5 font-headline text-lg font-bold">商品資料</h2>
-      <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+      <!-- 寬螢幕四欄：名稱（佔兩格）、分類、狀態 ／ 售價、原價、標籤、庫存 -->
+      <div class="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
         <label class="flex flex-col gap-1.5 md:col-span-2">
           <span class="text-sm font-semibold text-on-surface-variant">商品名稱</span>
           <Input v-model="form.name" />
@@ -331,10 +331,57 @@ onMounted(async () => {
           {{ saving ? '儲存中…' : '儲存' }}
         </Button>
       </div>
+
+      <!-- 商品圖片：放在同一張卡片內 -->
+      <div class="mt-8 border-t border-outline-variant/40 pt-6">
+        <div class="mb-4 flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <h3 class="font-headline text-lg font-bold">商品圖片</h3>
+            <p class="mt-0.5 text-xs text-outline">上傳、設為主圖、刪除都會立即生效，不需要按儲存。</p>
+          </div>
+          <label
+            class="cursor-pointer rounded-lg border border-outline-variant px-3 py-1.5 text-sm font-bold text-on-surface hover:bg-surface-container-low"
+            :class="{ 'pointer-events-none opacity-60': imageBusy }"
+          >
+            {{ imageBusy ? '處理中…' : '＋ 上傳圖片' }}
+            <input type="file" accept="image/*" multiple class="hidden" :disabled="imageBusy" @change="onUpload" />
+          </label>
+        </div>
+        <p v-if="imageError" class="mb-3 text-sm font-bold text-error">{{ imageError }}</p>
+
+        <div v-if="!images.length" class="rounded-lg bg-surface-container-low px-6 py-10 text-center text-sm text-outline">
+          尚無圖片，點右上角「上傳圖片」新增。
+        </div>
+        <div v-else class="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-6">
+          <div v-for="image in images" :key="image.id" class="overflow-hidden rounded-lg border border-outline-variant/60 bg-surface-container-lowest">
+            <div class="relative aspect-square bg-surface-container-low">
+              <img :src="image.image_url" :alt="image.alt ?? ''" class="h-full w-full object-cover" />
+              <span v-if="image.is_primary" class="absolute left-1.5 top-1.5 rounded-full bg-primary px-2 py-0.5 text-[11px] font-bold text-on-primary">主圖</span>
+            </div>
+            <div class="flex items-center justify-between gap-1 p-2">
+              <button
+                type="button"
+                class="text-xs font-bold text-primary disabled:opacity-40"
+                :disabled="imageBusy || image.is_primary"
+                @click="onSetPrimary(image.id)"
+              >
+                設為主圖
+              </button>
+              <button
+                type="button"
+                class="text-xs font-bold text-error disabled:opacity-40"
+                :disabled="imageBusy"
+                @click="onDeleteImage(image)"
+              >
+                刪除
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
     </section>
 
-    <!-- 危險操作：刪除商品 -->
-    <!-- 與其他卡片同樣白底，只用紅色標題與按鈕標示危險，避免一整塊粉色底突兀 -->
+    <!-- 刪除商品：與其他卡片同樣白底，只用紅色標題與按鈕標示危險 -->
     <section class="flex flex-wrap items-center justify-between gap-4 rounded-xl bg-surface-container-lowest p-5 shadow-sm md:px-6">
       <div class="min-w-0">
         <h3 class="font-headline text-lg font-bold text-error">刪除商品</h3>
@@ -371,52 +418,6 @@ onMounted(async () => {
         </div>
       </div>
     </section>
-      </div>
-
-      <!-- 右欄：商品圖片 -->
-      <section class="min-w-0 rounded-xl bg-surface-container-lowest p-5 shadow-sm md:p-6">
-        <div class="mb-4 flex items-center justify-between gap-3">
-          <h2 class="font-headline text-lg font-bold">商品圖片</h2>
-          <label
-            class="cursor-pointer rounded-lg border border-outline-variant px-3 py-1.5 text-sm font-bold text-on-surface hover:bg-surface-container-low"
-            :class="{ 'pointer-events-none opacity-60': imageBusy }"
-          >
-            {{ imageBusy ? '處理中…' : '＋ 上傳圖片' }}
-            <input type="file" accept="image/*" multiple class="hidden" :disabled="imageBusy" @change="onUpload" />
-          </label>
-        </div>
-        <p v-if="imageError" class="mb-3 text-sm font-bold text-error">{{ imageError }}</p>
-
-        <div v-if="!images.length" class="rounded-lg bg-surface-container-low px-6 py-12 text-center text-sm text-outline">
-          尚無圖片，點右上角「上傳圖片」新增。
-        </div>
-        <div v-else class="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-2 xl:grid-cols-3">
-          <div v-for="image in images" :key="image.id" class="overflow-hidden rounded-lg border border-outline-variant/60 bg-surface-container-lowest">
-            <div class="relative aspect-square bg-surface-container-low">
-              <img :src="image.image_url" :alt="image.alt ?? ''" class="h-full w-full object-cover" />
-              <span v-if="image.is_primary" class="absolute left-1.5 top-1.5 rounded-full bg-primary px-2 py-0.5 text-[11px] font-bold text-on-primary">主圖</span>
-            </div>
-            <div class="flex items-center justify-between gap-1 p-2">
-              <button
-                type="button"
-                class="text-xs font-bold text-primary disabled:opacity-40"
-                :disabled="imageBusy || image.is_primary"
-                @click="onSetPrimary(image.id)"
-              >
-                設為主圖
-              </button>
-              <button
-                type="button"
-                class="text-xs font-bold text-error disabled:opacity-40"
-                :disabled="imageBusy"
-                @click="onDeleteImage(image)"
-              >
-                刪除
-              </button>
-            </div>
-          </div>
-        </div>
-      </section>
     </div>
   </div>
 </template>
