@@ -410,7 +410,7 @@ onMounted(() => {
                 <span class="text-on-surface-variant font-medium">總金額</span>
                 <div class="text-right">
                   <span class="block text-2xl font-black font-headline text-on-surface">{{ formatPrice(total) }}</span>
-                  <span class="text-xs text-outline-variant">未含運費或付款折扣</span>
+                  <span class="text-xs text-outline-variant">全站免運費</span>
                 </div>
               </div>
             </div>

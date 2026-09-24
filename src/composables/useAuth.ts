@@ -23,7 +23,7 @@ async function syncUserProfile(user: User | null) {
       (user.user_metadata?.full_name as string | undefined) ||
       (user.user_metadata?.name as string | undefined) ||
       user.email?.split('@')[0] ||
-      'Shopping Member',
+      '會員',
     avatar_url: (user.user_metadata?.avatar_url as string | undefined) || null,
     provider: (user.app_metadata?.provider as string | undefined) || null,
     last_sign_in_at: user.last_sign_in_at,
@@ -272,10 +272,9 @@ const userProfile = computed(() => {
   const user = currentUser.value
 
   return {
-    name: (user?.user_metadata?.full_name as string | undefined) || user?.email?.split('@')[0] || 'Shopping Member',
+    name: (user?.user_metadata?.full_name as string | undefined) || user?.email?.split('@')[0] || '會員',
     email: user?.email || '',
-    title: user?.email || 'Signed in with Supabase Auth',
-    membership: 'Kinetic Elite Member',
+    title: user?.email || '已登入會員',
     avatar: (user?.user_metadata?.avatar_url as string | undefined) || '',
   }
 })
