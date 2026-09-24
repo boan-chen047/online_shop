@@ -106,6 +106,33 @@ const routes = [
     name: 'CheckoutResult',
     component: () => import('../view/components/CheckoutResult.vue'),
     meta: { requiresAuth: true }
+  },
+  // 網站資訊頁（頁尾連結）
+  {
+    path: '/privacy',
+    name: 'PrivacyPolicy',
+    component: () => import('../view/components/PrivacyPolicy.vue')
+  },
+  {
+    path: '/terms',
+    name: 'TermsOfService',
+    component: () => import('../view/components/TermsOfService.vue')
+  },
+  {
+    path: '/shipping',
+    name: 'ShippingInfo',
+    component: () => import('../view/components/ShippingInfo.vue')
+  },
+  {
+    path: '/contact',
+    name: 'ContactUs',
+    component: () => import('../view/components/ContactUs.vue')
+  },
+  {
+    // 找不到的網址一律顯示 404；必須放在最後，否則會攔截其他路由
+    path: '/:pathMatch(.*)*',
+    name: 'NotFound',
+    component: () => import('../view/components/NotFound.vue')
   }
 ]
 // 路由配置表

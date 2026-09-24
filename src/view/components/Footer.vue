@@ -1,23 +1,39 @@
+<script setup lang="ts">
+import { RouterLink } from 'vue-router'
+import { siteInfo } from '@/lib/siteInfo'
+
+const links = [
+  { to: '/privacy', label: '隱私權政策' },
+  { to: '/terms', label: '服務條款' },
+  { to: '/shipping', label: '運送與退貨' },
+  { to: '/contact', label: '聯絡我們' },
+]
+</script>
+
 <template>
   <!-- 頁尾區域 -->
-  <footer class="mt-10 w-full bg-surface-container-low py-12 font-body text-xs uppercase tracking-widest">
+  <footer class="mt-10 w-full bg-surface-container-low py-12 font-body text-sm">
     <div class="mx-auto flex max-w-[94vw] flex-col items-center justify-between px-5 md:flex-row">
       <!-- 品牌與版權資訊 -->
       <div class="mb-8 flex flex-col items-center gap-4 md:mb-0 md:items-start">
-        <span class="text-lg font-black text-on-surface">Shopping</span>
-        <p class="text-outline normal-case tracking-normal">© 2026 Shopping Marketplace. All Rights Reserved.</p>
+        <span class="text-lg font-black text-on-surface">{{ siteInfo.name }}</span>
+        <p class="text-outline">© 2026 {{ siteInfo.name }} 版權所有</p>
       </div>
       <!-- 品牌與版權資訊 -->
 
       <!-- 導航連結 -->
-      <div class="flex flex-wrap justify-center gap-8">
-        <a class="text-outline underline underline-offset-4 transition-all hover:text-on-surface" href="#">Privacy Policy</a>
-        <a class="text-outline underline underline-offset-4 transition-all hover:text-on-surface" href="#">Terms of Service</a>
-        <a class="text-outline underline underline-offset-4 transition-all hover:text-on-surface" href="#">Shipping Info</a>
-        <a class="text-outline underline underline-offset-4 transition-all hover:text-on-surface" href="#">Contact Us</a>
-      </div>
+      <nav class="flex flex-wrap justify-center gap-8">
+        <RouterLink
+          v-for="link in links"
+          :key="link.to"
+          :to="link.to"
+          class="text-outline underline underline-offset-4 transition-all hover:text-on-surface"
+        >
+          {{ link.label }}
+        </RouterLink>
+      </nav>
       <!-- 導航連結 -->
     </div>
   </footer>
-</template>
   <!-- 頁尾區域 -->
+</template>
