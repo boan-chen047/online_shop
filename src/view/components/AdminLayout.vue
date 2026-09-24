@@ -21,7 +21,9 @@ function itemClass(name: string) {
 </script>
 
 <template>
-  <div class="mx-auto max-w-[94vw] px-5 py-8 md:flex md:gap-8">
+  <!-- w-full 必要：外層 <main> 是直向 flex，搭配 mx-auto 時子項目會縮成內容寬度再置中，
+       導致每頁內容寬窄不同、整個後台（含側欄）左右移動 -->
+  <div class="mx-auto w-full max-w-[94vw] px-5 py-8 md:flex md:gap-8">
     <!-- 側邊導覽：手機版收成上方橫向可捲動列 -->
     <aside class="mb-6 md:mb-0 md:w-60 md:shrink-0 md:sticky md:top-[88px] md:self-start md:rounded-xl md:bg-surface-container-lowest md:p-3 md:shadow-sm">
       <p class="mb-3 px-4 pt-1 text-xs font-bold tracking-widest text-outline">後台管理</p>
