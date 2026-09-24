@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input'
 import { useAuth } from '@/composables/useAuth'
 import { supabase } from '@/lib/supabase'
 import { type ProductImage, loadImages, uploadImages, setPrimary, deleteImage } from '@/composables/useProductImages'
+import AdminPageHeader from './AdminPageHeader.vue'
 
 interface Category { id: string; name: string }
 
@@ -254,10 +255,14 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="max-w-3xl">
-    <RouterLink :to="{ name: 'AdminProducts' }" class="mb-4 inline-flex items-center gap-1 text-sm font-bold text-primary hover:underline">
-      <span aria-hidden="true">&larr;</span> 返回商品列表
-    </RouterLink>
+  <div class="pb-16">
+    <AdminPageHeader title="編輯商品" description="修改商品資料、狀態與圖片。">
+      <template #actions>
+        <Button as-child variant="outline" class="rounded-lg bg-surface-container-lowest font-bold">
+          <RouterLink :to="{ name: 'AdminProducts' }">← 返回商品列表</RouterLink>
+        </Button>
+      </template>
+    </AdminPageHeader>
 
     <div v-if="!isAuthReady || isLoading" class="rounded-xl bg-surface-container-lowest p-8 text-center text-base text-on-surface-variant">
       載入中...
@@ -279,8 +284,12 @@ onMounted(async () => {
       </Button>
     </div>
 
-    <section v-else class="rounded-xl bg-surface-container-lowest p-5 shadow-sm md:p-6">
-      <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+    <!-- 全寬單欄：同一張卡片包含商品資料與商品圖片，刪除區在最下方 -->
+    <div v-else class="flex flex-col gap-6">
+    <section class="rounded-xl bg-surface-container-lowest p-5 shadow-sm md:p-6">
+      <h2 class="mb-5 font-headline text-lg font-bold">商品資料</h2>
+      <!-- 寬螢幕四欄：名稱（佔兩格）、分類、狀態 ／ 售價、原價、標籤、庫存 -->
+      <div class="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
         <label class="flex flex-col gap-1.5 md:col-span-2">
           <span class="text-sm font-semibold text-on-surface-variant">商品名稱</span>
           <Input v-model="form.name" />
@@ -315,17 +324,21 @@ onMounted(async () => {
         </label>
       </div>
 
-      <div class="mt-6 flex items-center justify-end gap-3">
-        <span v-if="saveError" class="text-sm font-bold text-red-600">{{ saveError }}</span>
-        <span v-else-if="savedAt" class="text-sm font-bold text-green-600">已儲存</span>
-        <Button :disabled="saving" class="primary-gradient rounded-xl px-6 font-bold text-on-primary hover:opacity-80" @click="save">
+      <div class="mt-6 flex items-center justify-end gap-3 border-t border-outline-variant/40 pt-5">
+        <span v-if="saveError" class="text-sm font-bold text-error">{{ saveError }}</span>
+        <span v-else-if="savedAt" class="text-sm font-bold text-primary">已儲存</span>
+        <Button :disabled="saving" class="primary-gradient rounded-lg px-6 font-bold text-on-primary" @click="save">
           {{ saving ? '儲存中…' : '儲存' }}
         </Button>
       </div>
 
-      <div class="mt-8 border-t border-outline-variant/50 pt-6">
-        <div class="mb-3 flex items-center justify-between">
-          <h2 class="font-bold text-on-surface">商品圖片</h2>
+      <!-- 商品圖片：放在同一張卡片內 -->
+      <div class="mt-8 border-t border-outline-variant/40 pt-6">
+        <div class="mb-4 flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <h3 class="font-headline text-lg font-bold">商品圖片</h3>
+            <p class="mt-0.5 text-xs text-outline">上傳、設為主圖、刪除都會立即生效，不需要按儲存。</p>
+          </div>
           <label
             class="cursor-pointer rounded-lg border border-outline-variant px-3 py-1.5 text-sm font-bold text-on-surface hover:bg-surface-container-low"
             :class="{ 'pointer-events-none opacity-60': imageBusy }"
@@ -334,12 +347,12 @@ onMounted(async () => {
             <input type="file" accept="image/*" multiple class="hidden" :disabled="imageBusy" @change="onUpload" />
           </label>
         </div>
-        <p v-if="imageError" class="mb-3 text-sm font-bold text-red-600">{{ imageError }}</p>
+        <p v-if="imageError" class="mb-3 text-sm font-bold text-error">{{ imageError }}</p>
 
-        <div v-if="!images.length" class="rounded-lg bg-surface-container-low p-6 text-center text-sm text-outline">
+        <div v-if="!images.length" class="rounded-lg bg-surface-container-low px-6 py-10 text-center text-sm text-outline">
           尚無圖片，點右上角「上傳圖片」新增。
         </div>
-        <div v-else class="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
+        <div v-else class="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-6">
           <div v-for="image in images" :key="image.id" class="overflow-hidden rounded-lg border border-outline-variant/60 bg-surface-container-lowest">
             <div class="relative aspect-square bg-surface-container-low">
               <img :src="image.image_url" :alt="image.alt ?? ''" class="h-full w-full object-cover" />
@@ -356,7 +369,7 @@ onMounted(async () => {
               </button>
               <button
                 type="button"
-                class="text-xs font-bold text-red-600 disabled:opacity-40"
+                class="text-xs font-bold text-error disabled:opacity-40"
                 :disabled="imageBusy"
                 @click="onDeleteImage(image)"
               >
@@ -368,25 +381,27 @@ onMounted(async () => {
       </div>
     </section>
 
-    <!-- 危險操作：刪除商品 -->
-    <div v-if="isAuthReady && isAdmin && !isLoading && !loadError && !notFound" class="mt-6 rounded-xl border border-red-300 bg-red-50/50 p-5">
-      <h3 class="font-bold text-red-700">危險操作</h3>
-      <p class="mt-1 text-sm text-on-surface-variant">刪除後無法復原（商品、圖片、庫存都會移除；歷史訂單仍保留紀錄）。</p>
-      <p v-if="deleteError" class="mt-2 text-sm font-bold text-red-600">{{ deleteError }}</p>
-      <div class="mt-3">
+    <!-- 刪除商品：與其他卡片同樣白底，只用紅色標題與按鈕標示危險 -->
+    <section class="flex flex-wrap items-center justify-between gap-4 rounded-xl bg-surface-container-lowest p-5 shadow-sm md:px-6">
+      <div class="min-w-0">
+        <h3 class="font-headline text-lg font-bold text-error">刪除商品</h3>
+        <p class="mt-1 text-sm text-on-surface-variant">刪除後無法復原（商品、圖片、庫存都會移除；歷史訂單仍保留紀錄）。</p>
+        <p v-if="deleteError" class="mt-2 text-sm font-bold text-error">{{ deleteError }}</p>
+      </div>
+      <div class="shrink-0">
         <button
           v-if="!confirmingDelete"
           type="button"
-          class="rounded-lg border border-red-500 px-4 py-2 text-sm font-bold text-red-600 hover:bg-red-50"
+          class="rounded-lg border border-error/60 px-4 py-2 text-sm font-bold text-error hover:bg-error/10"
           @click="confirmingDelete = true"
         >
           刪除商品
         </button>
         <div v-else class="flex flex-wrap items-center gap-3">
-          <span class="text-sm font-bold text-red-700">確定刪除？此動作無法復原。</span>
+          <span class="text-sm font-bold text-error">確定刪除？此動作無法復原。</span>
           <button
             type="button"
-            class="rounded-lg bg-red-600 px-4 py-2 text-sm font-bold text-white hover:bg-red-700 disabled:opacity-50"
+            class="rounded-lg bg-error px-4 py-2 text-sm font-bold text-white hover:bg-error/90 disabled:opacity-50"
             :disabled="deleting"
             @click="deleteProduct"
           >
@@ -402,6 +417,7 @@ onMounted(async () => {
           </button>
         </div>
       </div>
+    </section>
     </div>
   </div>
 </template>

@@ -3,6 +3,7 @@ import { computed, onBeforeUnmount, onMounted, reactive, ref } from 'vue'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { useNews, type NewsArticle, type NewsInput } from '@/composables/useNews'
+import AdminPageHeader from './AdminPageHeader.vue'
 
 const { newsItems, loadNews, createNews, updateNews, deleteNews } = useNews()
 
@@ -75,6 +76,22 @@ function onPickImage(event: Event) {
   }
 }
 
+// 目前要顯示的封面：新選的圖優先，其次是編輯中消息原本的圖
+const coverSrc = computed(() => imagePreview.value || existingImageUrl.value)
+
+// 移除圖片：有新選的圖 → 取消新圖、回到原本的圖；沒有新圖 → 移除原本的圖（存檔前必須再上傳一張）
+function removeCover() {
+  if (imagePreview.value) {
+    imageFile.value = null
+    clearPreview()
+    if (fileInput.value) {
+      fileInput.value.value = ''
+    }
+    return
+  }
+  existingImageUrl.value = ''
+}
+
 function resetForm() {
   Object.assign(form, emptyForm())
   imageFile.value = null
@@ -145,8 +162,8 @@ async function submit() {
   ]
     .filter(([value]) => !value.trim())
     .map(([, label]) => label)
-  // 封面圖：新增必填；編輯時可留空，沿用原本的圖
-  if (!isEditing.value && !imageFile.value) {
+  // 封面圖必須有一張：新選的圖，或（編輯時）沒被移除的原圖
+  if (!imageFile.value && !existingImageUrl.value) {
     missing.push('封面圖片')
   }
   if (missing.length) {
@@ -210,22 +227,19 @@ const inputClass = 'w-full rounded-lg border border-outline-variant bg-surface p
 <template>
   <div class="text-on-surface antialiased font-body">
     <main class="pb-16">
-      <div class="mb-6 flex flex-wrap items-center justify-between gap-4">
-        <h1 class="font-headline text-2xl font-black">最新消息管理</h1>
-        <Button
-          v-if="!showForm"
-          class="primary-gradient rounded-lg font-bold text-on-primary"
-          @click="openForm"
-        >
-          ＋ 新增消息
-        </Button>
-      </div>
+      <AdminPageHeader title="最新消息" description="發布、編輯與刪除網站公告。">
+        <template v-if="!showForm" #actions>
+          <Button class="primary-gradient rounded-lg font-bold text-on-primary" @click="openForm">
+            ＋ 新增消息
+          </Button>
+        </template>
+      </AdminPageHeader>
 
       <p v-if="message" class="mb-4 rounded-lg bg-primary/10 px-4 py-3 text-sm font-bold text-primary">{{ message }}</p>
       <p v-if="errorMessage" class="mb-4 rounded-lg bg-error/10 px-4 py-3 text-sm font-bold text-error">{{ errorMessage }}</p>
 
       <!-- 新增表單 -->
-      <section v-if="showForm" class="mb-8 space-y-5 rounded-xl border border-outline-variant bg-surface-container-lowest p-5 md:p-6">
+      <section v-if="showForm" class="mb-8 space-y-5 rounded-xl bg-surface-container-lowest p-5 shadow-sm md:p-6">
         <h2 class="font-headline text-lg font-bold">{{ isEditing ? '編輯消息' : '新增消息' }}</h2>
 
         <div class="grid gap-4 md:grid-cols-[1fr_1fr_12rem]">
@@ -252,13 +266,34 @@ const inputClass = 'w-full rounded-lg border border-outline-variant bg-surface p
         </div>
 
         <div>
-          <label class="mb-1 block text-sm font-bold">
-            封面圖片 <span v-if="!isEditing" class="text-error">*</span>
-            <span class="font-normal text-outline">（上傳時會自動壓縮{{ isEditing ? '；不選就沿用原本的圖' : '' }}）</span>
-          </label>
-          <input ref="fileInput" type="file" accept="image/*" class="text-sm" @change="onPickImage" />
-          <img v-if="imagePreview" :src="imagePreview" alt="封面預覽" class="mt-3 aspect-video w-full max-w-sm rounded-lg object-cover" />
-          <img v-else-if="existingImageUrl" :src="existingImageUrl" alt="目前封面" class="mt-3 aspect-video w-full max-w-sm rounded-lg object-cover" />
+          <div class="mb-2 flex flex-wrap items-center justify-between gap-3">
+            <p class="text-sm font-bold">
+              封面圖片 <span class="text-error">*</span>
+              <span class="font-normal text-outline">（上傳時會自動壓縮）</span>
+            </p>
+            <!-- 與商品圖片同樣的操作按鈕：上傳／更換、移除 -->
+            <div class="flex items-center gap-2">
+              <label class="cursor-pointer rounded-lg border border-outline-variant px-3 py-1.5 text-sm font-bold text-on-surface hover:bg-surface-container-low">
+                {{ coverSrc ? '更換圖片' : '＋ 上傳圖片' }}
+                <input ref="fileInput" type="file" accept="image/*" class="hidden" @change="onPickImage" />
+              </label>
+              <button
+                v-if="coverSrc"
+                type="button"
+                class="rounded-lg px-3 py-1.5 text-sm font-bold text-error hover:bg-error/10"
+                @click="removeCover"
+              >
+                移除圖片
+              </button>
+            </div>
+          </div>
+          <div class="relative w-full max-w-sm">
+            <img v-if="coverSrc" :src="coverSrc" alt="封面預覽" class="aspect-video w-full rounded-lg object-cover" />
+            <div v-else class="flex aspect-video w-full items-center justify-center rounded-lg bg-surface-container-low text-sm text-outline">
+              尚未選擇封面圖片
+            </div>
+            <span v-if="imagePreview" class="absolute left-2 top-2 rounded-full bg-primary px-2 py-0.5 text-[11px] font-bold text-on-primary">新圖片</span>
+          </div>
         </div>
 
         <div>
@@ -301,7 +336,7 @@ const inputClass = 'w-full rounded-lg border border-outline-variant bg-surface p
 
       <!-- 列表搜尋 -->
       <div v-if="!isLoading && newsItems.length" class="mb-5">
-        <Input v-model="keyword" placeholder="搜尋標題、分類或摘要…" class="max-w-md" />
+        <Input v-model="keyword" placeholder="搜尋標題、分類或摘要…" class="max-w-sm bg-surface-container-lowest" />
         <p v-if="keyword.trim()" class="mt-2 text-sm text-on-surface-variant">找到 {{ filteredNews.length }} 則符合的消息。</p>
       </div>
 
