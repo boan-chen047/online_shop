@@ -334,15 +334,18 @@ onMounted(async () => {
     </section>
 
     <!-- 危險操作：刪除商品 -->
-    <section class="rounded-xl border border-error/30 bg-error/5 p-5">
-      <h3 class="font-bold text-error">危險操作</h3>
-      <p class="mt-1 text-sm text-on-surface-variant">刪除後無法復原（商品、圖片、庫存都會移除；歷史訂單仍保留紀錄）。</p>
-      <p v-if="deleteError" class="mt-2 text-sm font-bold text-error">{{ deleteError }}</p>
-      <div class="mt-3">
+    <!-- 與其他卡片同樣白底，只用紅色標題與按鈕標示危險，避免一整塊粉色底突兀 -->
+    <section class="flex flex-wrap items-center justify-between gap-4 rounded-xl bg-surface-container-lowest p-5 shadow-sm md:px-6">
+      <div class="min-w-0">
+        <h3 class="font-headline text-lg font-bold text-error">刪除商品</h3>
+        <p class="mt-1 text-sm text-on-surface-variant">刪除後無法復原（商品、圖片、庫存都會移除；歷史訂單仍保留紀錄）。</p>
+        <p v-if="deleteError" class="mt-2 text-sm font-bold text-error">{{ deleteError }}</p>
+      </div>
+      <div class="shrink-0">
         <button
           v-if="!confirmingDelete"
           type="button"
-          class="rounded-lg border border-error/60 bg-surface-container-lowest px-4 py-2 text-sm font-bold text-error hover:bg-error/10"
+          class="rounded-lg border border-error/60 px-4 py-2 text-sm font-bold text-error hover:bg-error/10"
           @click="confirmingDelete = true"
         >
           刪除商品
